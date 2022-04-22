@@ -23,6 +23,7 @@ public:
     Vector3f color[2];
     float frequency;
     float amplitude;
+    
 };
 
 #endif // NOISE_H

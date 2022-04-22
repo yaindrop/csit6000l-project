@@ -29,10 +29,11 @@ public:
     Vector3f render(const Scene &scene, const Ray &ray);
 };
 
-class BlurringRayCaster : public RayCaster {
+class BlurryRayCaster : public RayCaster {
 public:
-    BlurringRayCaster(const Arguments &args) : RayCaster(args) {}
+    BlurryRayCaster(const Arguments &args) : RayCaster(args) {}
     Vector3f render(const Scene &scene, const Ray &ray);
 };
+
 
 #endif // RAYCASTER_H

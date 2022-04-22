@@ -48,11 +48,11 @@ class ThinLensCamera : public Camera
 {
 public:
     ThinLensCamera(const Vector3f &center, const Vector3f &direction,
-                   const Vector3f &up, float angle, float focus_dist, float aperture)
+                   const Vector3f &up, float angle, float focus_dist, float aperture = 0.1f)
         : center(center),
           angle(angle),
           w(direction.normalized()),
-          u(Vector3f::cross(w, up).normalized()),
+          u(Vector3f::cross(direction, up).normalized()),
           v(Vector3f::cross(u, w).normalized()),
           focus_dist(focus_dist),
           aperture(aperture) {}
