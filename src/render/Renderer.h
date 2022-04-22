@@ -21,11 +21,11 @@ public:
         bool jittered = false);
     
     // Blurry Scene
-    static void renderScene(
+    static void rendeBlurryScene(
         const Scene &scene,
         Image &img,
         RenderFunction &renderFunc,
-        float focus_dist);
+        bool jittered = false);
 };
 
 #endif // RENDERER_H

@@ -29,6 +29,7 @@ void Renderer::renderScene(
     RenderFunction &func,
     bool jittered)
 {
+
     int w = img.getWidth(), h = img.getHeight();
     if (jittered)
     {
@@ -56,13 +57,14 @@ void Renderer::renderScene(
     cout << endl;
 }
 
-void Renderer::renderScene(
+void Renderer::rendeBlurryScene(
     const Scene &scene,
     Image &img,
     RenderFunction &func,
-    bool jittered,
-    float focus_dist)
+    bool jittered)
 {
+    // return renderScene(scene, img, func);
+
     int w = img.getWidth(), h = img.getHeight();
     if (jittered)
     {
@@ -70,27 +72,27 @@ void Renderer::renderScene(
         h *= 3;
         img.reset(w, h);
     }
-    auto &camera = scene.getThinLensCamera(focus_dist);
-    float sample_size = 10;
+    auto &camera = scene.getThinLensCamera();
+    float sample_size = 10.0f;
     for (int i = 0; i < w; ++i)
     {
         for (int j = 0; j < h; ++j)
         {
             Vector3f pixel_col = Vector3f::ZERO;
+            float x = i, y = j;
+            if (jittered)
+            {
+                x += (float)rand() / RAND_MAX - 0.5;
+                y += (float)rand() / RAND_MAX - 0.5;
+            }
+            x = -1 + 2 * x / (w - 1), y = -1 + 2 * y / (h - 1);
             for (int k = 0; k < sample_size; ++k)
             {
-                float x = i, y = j;
-                if (jittered)
-                {
-                    x += (float)rand() / RAND_MAX - 0.5;
-                    y += (float)rand() / RAND_MAX - 0.5;
-                }
-                x = -1 + 2 * x / (w - 1), y = -1 + 2 * y / (h - 1);
                 auto ray = camera.generateRay(Vector2f(x, y));
                 pixel_col += func.render(scene, ray);
             }
 
-            img.setPixel(j, i, pixel_col);
+            img.setPixel(i, j, pixel_col/sample_size);
         }
         printProgress((float)(i + 1) / w);
     }

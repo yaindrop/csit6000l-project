@@ -18,46 +18,58 @@
 
 #define MAX_PARSER_TOKEN_LENGTH 100
 
-class Scene {
+class Scene
+{
     friend class SceneParser;
 
 public:
     Scene(const char *filename);
     ~Scene();
 
-    Group &getGroup() const {
+    Group &getGroup() const
+    {
         return *group;
     }
-    Camera &getCamera() const {
+    Camera &getCamera() const
+    {
         return *camera;
     }
-    Vector3f getBackgroundColor(Vector3f dir = Vector3f::RIGHT) const {
-        if (cubemap == NULL) {
+    Vector3f getBackgroundColor(Vector3f dir = Vector3f::RIGHT) const
+    {
+        if (cubemap == NULL)
+        {
             return background_color;
         }
         return cubemap->operator()(dir);
     }
-    Vector3f getAmbientLight() const {
+    Vector3f getAmbientLight() const
+    {
         return ambient_light;
     }
-    int getNumLights() const {
+    int getNumLights() const
+    {
         return num_lights;
     }
-    Light &getLight(int i) const {
+    Light &getLight(int i) const
+    {
         assert(i >= 0 && i < num_lights);
         return *lights[i];
     }
-    int getNumMaterials() const {
+    int getNumMaterials() const
+    {
         return num_materials;
     }
-    Material &getMaterial(int i) const {
+    Material &getMaterial(int i) const
+    {
         assert(i >= 0 && i < num_materials);
         return *materials[i];
     }
-    bool hasCubeMap() const {
+    bool hasCubeMap() const
+    {
         return cubemap != NULL;
     }
-
+    void setThinLensCamera(float focus_dist);
+    Camera &getThinLensCamera() const;
 private:
     Group *group = NULL;
     Camera *camera = NULL;
@@ -69,9 +81,13 @@ private:
     int num_materials = 0;
     Material **materials = NULL;
     CubeMap *cubemap = NULL;
+
+    Vector3f center, direction, up;
+    float angle_radians;
 };
 
-class SceneParser {
+class SceneParser
+{
     friend class Scene;
 
     SceneParser(Scene &scene, const char *filename);
@@ -107,10 +123,6 @@ class SceneParser {
     float readFloat();
     int readInt();
     std::filesystem::path getRelativePath(const char *resource);
-
-    Camera &getThinLensCamera(float focus_dist, float aperture);
-    Vector3f center, direction, up;
-    float angle_radians;
 };
 
 #endif // SCENE_H

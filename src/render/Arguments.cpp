@@ -51,10 +51,10 @@ Arguments::Arguments(int argc, char *argv[]) {
             filter = true;
         } else if (strcmp(argv[i], "-casting") == 0) {
             rayCasting = true;
-        } else if (strcmp(argv[i], "-blurring") == 0) {
+        } else if (!strcmp(argv[i], "-blurry")) {
             blurry = true;
-            focus_dist = atof(strcmp(argv[++i]);
-            blurryFile = strcmp(argv[++i]);
+            focus_dist = atof(argv[++i]);
+            blurryFile = argv[++i];
         } else {
             printf("Unknown command line argument %d: '%s'\n", i, argv[i]);
             assert(0);

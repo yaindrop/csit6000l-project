@@ -74,25 +74,30 @@ void SceneParser::parsePerspectiveCamera() {
     assert(!strcmp(token, "{"));
     getToken(token);
     assert(!strcmp(token, "center"));
-    this.center = readVector3f();
+    scene.center = readVector3f();
     getToken(token);
     assert(!strcmp(token, "direction"));
-    this.direction = readVector3f();
+    scene.direction = readVector3f();
     getToken(token);
     assert(!strcmp(token, "up"));
-    this.up = readVector3f();
+    scene.up = readVector3f();
     getToken(token);
     assert(!strcmp(token, "angle"));
     float angle_degrees = readFloat();
-    this.angle_radians = DegreesToRadians(angle_degrees);
+    scene.angle_radians = DegreesToRadians(angle_degrees);
     getToken(token);
     assert(!strcmp(token, "}"));
-    scene.camera = new PerspectiveCamera(center, direction, up, angle_radians);
+
+    scene.camera = new PerspectiveCamera(scene.center, scene.direction, scene.up, scene.angle_radians);
 }
 
-Camera &getThinLensCamera(float focus_dist, float aperture = 0.1); {
-    scene.thinLenCamera = new ThinLensCamera(center, direction, up, angle_radians, focus_dist, aperture);
-    return *scene.thinLenCamera;
+void Scene::setThinLensCamera(float focus_dist){
+
+    thinLenCamera = new ThinLensCamera(center, direction, up, angle_radians, focus_dist);
+}
+
+Camera& Scene::getThinLensCamera() const{
+    return *thinLenCamera;
 }
 
 void SceneParser::parseBackground() {
@@ -120,7 +125,7 @@ void SceneParser::parseBackground() {
 CubeMap *SceneParser::parseCubeMap() {
     char token[MAX_PARSER_TOKEN_LENGTH];
     getToken(token);
-    return new CubeMap(getRelativePath(token).c_str());
+    return new CubeMap(getRelativePath(token).string().c_str());
 }
 
 // ====================================================================
@@ -252,7 +257,7 @@ Material *SceneParser::parseMaterial() {
     }
     Material *answer = new Material(diffuseColor, specularColor, shininess, refractionIndex);
     if (filename[0] != 0) {
-        answer->loadTexture(getRelativePath(filename).c_str());
+        answer->loadTexture(getRelativePath(filename).string().c_str());
     }
     if (noise != NULL) {
         answer->setNoise(*noise);
@@ -429,7 +434,7 @@ Mesh *SceneParser::parseTriangleMesh() {
     assert(!strcmp(token, "}"));
     const char *ext = &filename[strlen(filename) - 4];
     assert(!strcmp(ext, ".obj"));
-    Mesh *answer = new Mesh(getRelativePath(filename).c_str(), current_material);
+    Mesh *answer = new Mesh(getRelativePath(filename).string().c_str(), current_material);
 
     return answer;
 }
