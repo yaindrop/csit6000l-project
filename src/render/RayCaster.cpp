@@ -53,7 +53,7 @@ Vector3f BlurryRayCaster::render(const Scene &scene, const Ray &ray) {
             Vector3f lightDirection, lightColor, shadingColor;
             float dist;
             scene.getLight(li).getIllumination(ray(hit.getT()), lightDirection, lightColor, dist);
-            shadingColor = hit.getMaterial()->Shade(ray, hit, lightDirection, lightColor);
+            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor,false);
             color = color + shadingColor;
         }
         return color;
