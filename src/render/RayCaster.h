@@ -15,6 +15,7 @@ public:
 
 protected:
     const Arguments &args;
+    bool rayCasting = true;
 };
 
 class DepthRayCaster : public RayCaster {

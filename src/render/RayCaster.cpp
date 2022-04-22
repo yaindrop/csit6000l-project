@@ -8,7 +8,7 @@ Vector3f RayCaster::render(const Scene &scene, const Ray &ray) {
             Vector3f lightDirection, lightColor, shadingColor;
             float dist;
             scene.getLight(li).getIllumination(ray(hit.getT()), lightDirection, lightColor, dist);
-            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, true);
+            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, rayCasting);
             color = color + shadingColor;
         }
         return color;
@@ -46,18 +46,6 @@ Vector3f NormalsRayCaster::render(const Scene &scene, const Ray &ray) {
 }
 
 Vector3f BlurryRayCaster::render(const Scene &scene, const Ray &ray) {
-    Hit hit;
-    if (scene.getGroup().intersect(ray, hit, scene.getCamera().getTMin())) {
-        auto color = scene.getAmbientLight() * hit.getMaterial()->getDiffuseColor();
-        for (int li = 0; li < scene.getNumLights(); ++li) {
-            Vector3f lightDirection, lightColor, shadingColor;
-            float dist;
-            scene.getLight(li).getIllumination(ray(hit.getT()), lightDirection, lightColor, dist);
-            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor,false);
-            color = color + shadingColor;
-        }
-        return color;
-    } else {
-        return scene.getBackgroundColor(ray.getDirection());
-    }
+    rayCasting = false;
+    return RayCaster::render(scene, ray);
 }
