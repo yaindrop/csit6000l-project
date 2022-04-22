@@ -5,18 +5,27 @@
 #include "Arguments.h"
 #include "Image.h"
 
-class RenderFunction {
+class RenderFunction
+{
 public:
     virtual Vector3f render(const Scene &scene, const Ray &ray) = 0;
 };
 
-class Renderer {
+class Renderer
+{
 public:
     static void renderScene(
         const Scene &scene,
         Image &img,
         RenderFunction &renderFunc,
         bool jittered = false);
+    
+    // Blurry Scene
+    static void renderScene(
+        const Scene &scene,
+        Image &img,
+        RenderFunction &renderFunc,
+        float focus_dist);
 };
 
 #endif // RENDERER_H

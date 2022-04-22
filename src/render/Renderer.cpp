@@ -8,7 +8,8 @@ using namespace std;
 #define RIGHT_BRACKET "▏"
 #define FULL_BLOCK "█"
 const char *partialBlocks[] = {" ", "▏", "▎", "▍", "▌", "▋", "▊", "▉"};
-void printProgress(double percentage, int length = 60) {
+void printProgress(double percentage, int length = 60)
+{
     int fullBlocks = (int)floor(percentage * length);
     int partialIndex = (int)(8 * length * (percentage - (double)fullBlocks / length));
     cout << "\r" << LEFT_BRACKET;
@@ -26,24 +27,70 @@ void Renderer::renderScene(
     const Scene &scene,
     Image &img,
     RenderFunction &func,
-    bool jittered) {
+    bool jittered)
+{
     int w = img.getWidth(), h = img.getHeight();
-    if (jittered) {
+    if (jittered)
+    {
         w *= 3;
         h *= 3;
         img.reset(w, h);
     }
     auto &camera = scene.getCamera();
-    for (int i = 0; i < w; ++i) {
-        for (int j = 0; j < h; ++j) {
+    for (int i = 0; i < w; ++i)
+    {
+        for (int j = 0; j < h; ++j)
+        {
             float x = i, y = j;
-            if (jittered) {
+            if (jittered)
+            {
                 x += (float)rand() / RAND_MAX - 0.5;
                 y += (float)rand() / RAND_MAX - 0.5;
             }
             x = -1 + 2 * x / (w - 1), y = -1 + 2 * y / (h - 1);
             auto ray = camera.generateRay(Vector2f(x, y));
             img.setPixel(j, i, func.render(scene, ray));
+        }
+        printProgress((float)(i + 1) / w);
+    }
+    cout << endl;
+}
+
+void Renderer::renderScene(
+    const Scene &scene,
+    Image &img,
+    RenderFunction &func,
+    bool jittered,
+    float focus_dist)
+{
+    int w = img.getWidth(), h = img.getHeight();
+    if (jittered)
+    {
+        w *= 3;
+        h *= 3;
+        img.reset(w, h);
+    }
+    auto &camera = scene.getThinLensCamera(focus_dist);
+    float sample_size = 10;
+    for (int i = 0; i < w; ++i)
+    {
+        for (int j = 0; j < h; ++j)
+        {
+            Vector3f pixel_col = Vector3f::ZERO;
+            for (int k = 0; k < sample_size; ++k)
+            {
+                float x = i, y = j;
+                if (jittered)
+                {
+                    x += (float)rand() / RAND_MAX - 0.5;
+                    y += (float)rand() / RAND_MAX - 0.5;
+                }
+                x = -1 + 2 * x / (w - 1), y = -1 + 2 * y / (h - 1);
+                auto ray = camera.generateRay(Vector2f(x, y));
+                pixel_col += func.render(scene, ray);
+            }
+
+            img.setPixel(j, i, pixel_col);
         }
         printProgress((float)(i + 1) / w);
     }
