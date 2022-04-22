@@ -61,6 +61,7 @@ public:
 private:
     Group *group = NULL;
     Camera *camera = NULL;
+    Camera *thinLenCamera = NULL;
     Vector3f background_color = Vector3f(0.5, 0.5, 0.5);
     Vector3f ambient_light = Vector3f(0, 0, 0);
     int num_lights = 0;
@@ -106,6 +107,10 @@ class SceneParser {
     float readFloat();
     int readInt();
     std::filesystem::path getRelativePath(const char *resource);
+
+    Camera &getThinLensCamera(float focus_dist, float aperture);
+    Vector3f center, direction, up;
+    float angle_radians;
 };
 
 #endif // SCENE_H

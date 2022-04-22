@@ -58,5 +58,12 @@ int main(int argc, char *argv[]) {
         img.saveImage(args.normalsFile);
     }
 
+    if (args.blurry) {
+        Image img(args.width, args.height);
+        BlurringRayCaster brc(args);
+        Renderer::renderScene(scene, img, brc, args.focus_dist);
+        img.saveImage(args.blurryFile);
+    }
+
     return 0;
 }

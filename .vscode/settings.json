@@ -74,5 +74,6 @@
             "binaryPath": "/home/yaindrop/hkust/csit6000l/a5/a5",
             "binaryArgs": ["-input", "scene/scene12_vase.txt", "-output", "1.bmp", "-size", "300", "300", "-jitter"]
         }
-    ]
+    ],
+    "C_Cpp.errorSquiggles": "Disabled"
 }

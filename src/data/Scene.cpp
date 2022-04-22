@@ -74,20 +74,25 @@ void SceneParser::parsePerspectiveCamera() {
     assert(!strcmp(token, "{"));
     getToken(token);
     assert(!strcmp(token, "center"));
-    Vector3f center = readVector3f();
+    this.center = readVector3f();
     getToken(token);
     assert(!strcmp(token, "direction"));
-    Vector3f direction = readVector3f();
+    this.direction = readVector3f();
     getToken(token);
     assert(!strcmp(token, "up"));
-    Vector3f up = readVector3f();
+    this.up = readVector3f();
     getToken(token);
     assert(!strcmp(token, "angle"));
     float angle_degrees = readFloat();
-    float angle_radians = DegreesToRadians(angle_degrees);
+    this.angle_radians = DegreesToRadians(angle_degrees);
     getToken(token);
     assert(!strcmp(token, "}"));
     scene.camera = new PerspectiveCamera(center, direction, up, angle_radians);
+}
+
+Camera &getThinLensCamera(float focus_dist, float aperture = 0.1); {
+    scene.thinLenCamera = new ThinLensCamera(center, direction, up, angle_radians, focus_dist, aperture);
+    return *scene.thinLenCamera;
 }
 
 void SceneParser::parseBackground() {
