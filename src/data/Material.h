@@ -38,10 +38,6 @@ public:
     {
         noise = n;
     }
-    Vector3f Shade(const Ray &ray, const Hit &hit,
-                   const Vector3f &dirToLight, const Vector3f &lightColor);
-    float clampedDot(const Vector3f &L, const Vector3f &N) const;
-    static  Vector3f pointwiseDot( const Vector3f& v1 , const Vector3f& v2 );
 
 protected:
     Vector3f diffuseColor;
