@@ -7,5 +7,5 @@
 ## Test
 -blurry [focus_length] [output_file]
 ```
- ./proj -input scene/scene09_s.txt -size 200 200 -output output/9.bmp -blurry 3.5 output/blurry9.bmp 
- ```
+./blurry.sh
+```
