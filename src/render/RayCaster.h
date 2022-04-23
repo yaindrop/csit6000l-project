@@ -36,5 +36,4 @@ public:
     Vector3f render(const Scene &scene, const Ray &ray);
 };
 
-
 #endif // RAYCASTER_H

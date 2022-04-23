@@ -91,12 +91,12 @@ void SceneParser::parsePerspectiveCamera() {
     scene.camera = new PerspectiveCamera(scene.center, scene.direction, scene.up, scene.angle_radians);
 }
 
-void Scene::setThinLensCamera(float focus_dist){
+void Scene::setThinLensCamera(float focus_dist) {
 
     thinLenCamera = new ThinLensCamera(center, direction, up, angle_radians, focus_dist);
 }
 
-Camera& Scene::getThinLensCamera() const{
+Camera &Scene::getThinLensCamera() const {
     return *thinLenCamera;
 }
 
