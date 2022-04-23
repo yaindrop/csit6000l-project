@@ -2,6 +2,29 @@
     "C_Cpp.default.includePath": [
         "vecmath/include"
     ],
+    // https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+    "C_Cpp.clang_format_fallbackStyle": "{ Standard: c++20, BasedOnStyle: LLVM, UseTab: Never, IndentWidth: 4, TabWidth: 4, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4, NamespaceIndentation: All, FixNamespaceComments: false }",
+    "C_Cpp.default.cppStandard": "c++20",
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.clangTidy.args": [
+        "-extra-arg=-std=c++20"
+    ],
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/yaindrop/hkust/csit6000l/a5",
+            "binaryPath": "/home/yaindrop/hkust/csit6000l/a5/a5",
+            "binaryArgs": [
+                "-input",
+                "scene/scene12_vase.txt",
+                "-output",
+                "1.bmp",
+                "-size",
+                "300",
+                "300",
+                "-jitter"
+            ]
+        }
+    ],
     "files.associations": {
         "cmath": "cpp",
         "array": "cpp",
@@ -67,12 +90,5 @@
         "codecvt": "cpp",
         "iomanip": "cpp",
         "shared_mutex": "cpp"
-    },
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/home/yaindrop/hkust/csit6000l/a5",
-            "binaryPath": "/home/yaindrop/hkust/csit6000l/a5/a5",
-            "binaryArgs": ["-input", "scene/scene12_vase.txt", "-output", "1.bmp", "-size", "300", "300", "-jitter"]
-        }
-    ]
+    }
 }
