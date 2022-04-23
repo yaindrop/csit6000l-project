@@ -14,32 +14,35 @@ void intersectCall(int idx, void **arg) {
     arg[1] = (void *)(((bool)arg[1]) || result);
 }
 bool Mesh::intersect(const Ray &r, Hit &h, float tmin) {
-    // bool result = false;
-    // for (unsigned int i = 0; i < t.size(); i++) {
-    //     Triangle triangle(v[t[i][0]],
-    //                       v[t[i][1]], v[t[i][2]], material);
-    //     for (int jj = 0; jj < 3; jj++) {
-    //         triangle.normals[jj] = n[t[i][jj]];
-    //     }
-    //     if (texCoord.size() > 0) {
-    //         for (int jj = 0; jj < 3; jj++) {
-    //             triangle.texCoords[jj] = texCoord[t[i].texID[jj]];
-    //         }
-    //         triangle.hasTex = true;
-    //     }
-    //     result |= triangle.intersect(r, h, tmin);
-    // }
-    // return result;
-    ray = &r;
-    hit = &h;
-    tm = tmin;
-    void *arg[2];
-    arg[0] = this;
-    arg[1] = 0;
-    octree.arg = arg;
-    octree.termFunc = intersectCall;
-    octree.intersect(r);
-    return arg[1];
+    if (h.casting) {
+        bool result = false;
+        for (unsigned int i = 0; i < t.size(); i++) {
+            Triangle triangle(v[t[i][0]],
+                              v[t[i][1]], v[t[i][2]], material);
+            for (int jj = 0; jj < 3; jj++) {
+                triangle.normals[jj] = sn[t[i][jj]];
+            }
+            if (texCoord.size() > 0) {
+                for (int jj = 0; jj < 3; jj++) {
+                    triangle.texCoords[jj] = texCoord[t[i].texID[jj]];
+                }
+                triangle.hasTex = true;
+            }
+            result |= triangle.intersect(r, h, tmin);
+        }
+        return result;
+    } else {
+        ray = &r;
+        hit = &h;
+        tm = tmin;
+        void *arg[2];
+        arg[0] = this;
+        arg[1] = 0;
+        octree.arg = arg;
+        octree.termFunc = intersectCall;
+        octree.intersect(r);
+        return arg[1];
+    }
 }
 bool Mesh ::intersectTrig(int idx) {
     bool result = false;
@@ -130,19 +133,20 @@ Mesh::Mesh(const char *filename, Material *material) : Object3D(material) {
 }
 
 void Mesh::compute_norm() {
+    sn.resize(v.size());
+    for (unsigned int ii = 0; ii < t.size(); ii++) {
+        Vector3f a = v[t[ii][1]] - v[t[ii][0]];
+        Vector3f b = v[t[ii][2]] - v[t[ii][0]];
+        b = Vector3f::cross(a, b);
+        for (int jj = 0; jj < 3; jj++) {
+            sn[t[ii][jj]] += b;
+        }
+    }
+    for (unsigned int ii = 0; ii < v.size(); ii++) {
+        sn[ii] = sn[ii] / sn[ii].abs();
+    }
     if (SMOOTH) {
-        n.resize(v.size());
-        for (unsigned int ii = 0; ii < t.size(); ii++) {
-            Vector3f a = v[t[ii][1]] - v[t[ii][0]];
-            Vector3f b = v[t[ii][2]] - v[t[ii][0]];
-            b = Vector3f::cross(a, b);
-            for (int jj = 0; jj < 3; jj++) {
-                n[t[ii][jj]] += b;
-            }
-        }
-        for (unsigned int ii = 0; ii < v.size(); ii++) {
-            n[ii] = n[ii] / n[ii].abs();
-        }
+        n = sn;
     } else {
         n.resize(t.size());
         for (unsigned int ii = 0; ii < t.size(); ii++) {
