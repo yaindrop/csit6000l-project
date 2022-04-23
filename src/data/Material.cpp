@@ -2,7 +2,7 @@
 
 Vector3f Material::getShadingColor(const Ray &ray, const Hit &hit,
                                    const Vector3f &dirToLight, const Vector3f &lightColor,
-                                   bool rayCasting) const {
+                                   bool rayCasting, bool getSpecularColor) const {
     bool useTextureColor = t.valid() && hit.hasTex;
     auto diffuseColor = noise.inited
                             ? noise.getColor(ray.getOrigin() + ray.getDirection() * hit.getT())
@@ -15,6 +15,8 @@ Vector3f Material::getShadingColor(const Ray &ray, const Hit &hit,
     if (rayCasting) {
         float specularShading = max(0.0f, Vector3f::dot(dirToLight - 2 * diffuseShading * n, ray.getDirection()));
         auto specular = pow(specularShading, shininess) * lightColor * specularColor;
+        if(getSpecularColor)
+            return specular;
         return diffuse + specular;
     } else {
         return diffuse;

@@ -8,6 +8,7 @@
 class RenderFunction {
 public:
     virtual Vector3f render(const Scene &scene, const Ray &ray) = 0;
+    virtual Vector3f SpecularColor(const Scene &scene, const Ray &ray){return NULL;}
 };
 
 class Renderer {

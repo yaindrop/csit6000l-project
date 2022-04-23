@@ -16,6 +16,7 @@ public:
 protected:
     const Arguments &args;
     bool rayCasting = true;
+    bool getSpecularColor = false;
 };
 
 class DepthRayCaster : public RayCaster {
@@ -34,6 +35,7 @@ class BlurryRayCaster : public RayCaster {
 public:
     BlurryRayCaster(const Arguments &args) : RayCaster(args) {}
     Vector3f render(const Scene &scene, const Ray &ray);
+    Vector3f SpecularColor(const Scene &scene, const Ray &ray);
 };
 
 #endif // RAYCASTER_H

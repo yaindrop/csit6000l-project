@@ -64,11 +64,13 @@ void Renderer::renderBlurryScene(
         h *= 3;
         img.reset(w, h);
     }
-    auto &camera = scene.getThinLensCamera();
+    auto &thinLensCamera = scene.getThinLensCamera();
+    auto &camera = scene.getCamera();
     float sample_size = 10.0f;
     for (int i = 0; i < w; ++i) {
         for (int j = 0; j < h; ++j) {
             Vector3f pixel_col = Vector3f::ZERO;
+
             float x = i, y = j;
             if (jittered) {
                 x += (float)rand() / RAND_MAX - 0.5;
@@ -76,11 +78,14 @@ void Renderer::renderBlurryScene(
             }
             x = -1 + 2 * x / (w - 1), y = -1 + 2 * y / (h - 1);
             for (int k = 0; k < sample_size; ++k) {
-                auto ray = camera.generateRay(Vector2f(x, y));
+                auto ray = thinLensCamera.generateRay(Vector2f(x, y));
                 pixel_col += func.render(scene, ray);
             }
+            pixel_col = pixel_col / sample_size;
+            auto OriginalRay = camera.generateRay(Vector2f(y, x));
+            pixel_col += func.SpecularColor(scene, OriginalRay);
 
-            img.setPixel(i, j, pixel_col / sample_size);
+            img.setPixel(i, j, pixel_col);
         }
         printProgress((float)(i + 1) / w);
     }
