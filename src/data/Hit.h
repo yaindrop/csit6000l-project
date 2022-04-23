@@ -12,8 +12,10 @@ class Hit {
 public:
     bool hasTex = false;
     Vector2f texCoord;
+    bool casting = false;
 
     Hit() {}
+    Hit(bool casting) : casting(casting) {}
     Hit(float t) : t(t) {}
     Hit(float t, Material *m, const Vector3f &n) {
         set(t, m, n);

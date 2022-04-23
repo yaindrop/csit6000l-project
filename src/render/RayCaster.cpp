@@ -1,7 +1,7 @@
 #include "RayCaster.h"
 
 Vector3f RayCaster::render(const Scene &scene, const Ray &ray) {
-    Hit hit;
+    Hit hit(true);
     if (scene.getGroup().intersect(ray, hit, scene.getCamera().getTMin())) {
         auto color = scene.getAmbientLight() * hit.getMaterial()->getDiffuseColor();
         for (int li = 0; li < scene.getNumLights(); ++li) {
@@ -18,7 +18,7 @@ Vector3f RayCaster::render(const Scene &scene, const Ray &ray) {
 }
 
 Vector3f DepthRayCaster::render(const Scene &scene, const Ray &ray) {
-    Hit hit;
+    Hit hit(true);
     if (scene.getGroup().intersect(ray, hit, scene.getCamera().getTMin())) {
         if (hit.getT() < args.depthMin) {
             return Vector3f(1);
@@ -33,7 +33,7 @@ Vector3f DepthRayCaster::render(const Scene &scene, const Ray &ray) {
 }
 
 Vector3f NormalsRayCaster::render(const Scene &scene, const Ray &ray) {
-    Hit hit;
+    Hit hit(true);
     if (scene.getGroup().intersect(ray, hit, scene.getCamera().getTMin())) {
         auto n = hit.getNormal();
         for (int i = 0; i < 3; ++i)

@@ -27,6 +27,7 @@ public:
     std::vector<Vector3f> v;
     std::vector<Trig> t;
     std::vector<Vector3f> n;
+    std::vector<Vector3f> sn; // smooth normal
     std::vector<Vector2f> texCoord;
 
     virtual bool intersect(const Ray &r, Hit &h, float tmin);
