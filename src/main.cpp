@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 
     if (args.blurry) {
         Image img(args.width, args.height);
-        BlurryRayCaster brc(args);
+        RayCaster brc(args);
         scene.setThinLensCamera(args.focus_dist);
         Renderer::renderBlurryScene(scene, img, brc, args.jitter);
         img.saveImage(args.blurryFile);

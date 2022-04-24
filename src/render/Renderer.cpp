@@ -82,9 +82,6 @@ void Renderer::renderBlurryScene(
                 pixel_col += func.render(scene, ray);
             }
             pixel_col = pixel_col / sample_size;
-            auto OriginalRay = camera.generateRay(Vector2f(y, x));
-            pixel_col += func.SpecularColor(scene, OriginalRay);
-
             img.setPixel(i, j, pixel_col);
         }
         printProgress((float)(i + 1) / w);

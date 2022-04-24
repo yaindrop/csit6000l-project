@@ -31,11 +31,4 @@ public:
     Vector3f render(const Scene &scene, const Ray &ray);
 };
 
-class BlurryRayCaster : public RayCaster {
-public:
-    BlurryRayCaster(const Arguments &args) : RayCaster(args) {}
-    Vector3f render(const Scene &scene, const Ray &ray);
-    Vector3f SpecularColor(const Scene &scene, const Ray &ray);
-};
-
 #endif // RAYCASTER_H
