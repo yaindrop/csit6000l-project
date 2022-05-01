@@ -1,1 +1,3 @@
 obj/
+emobj/
+.vscode/*.log

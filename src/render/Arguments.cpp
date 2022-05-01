@@ -1,7 +1,7 @@
 #include "Arguments.h"
 #include <iostream>
 
-Arguments::Arguments(int argc, char *argv[]) {
+Arguments::Arguments(int argc, const char **argv) {
     // This loop loops over each of the input arguments.
     // argNum is initialized to 1 because the first
     // "argument" provided to the program is actually the
@@ -51,7 +51,9 @@ Arguments::Arguments(int argc, char *argv[]) {
             filter = true;
         } else if (strcmp(argv[i], "-casting") == 0) {
             rayCasting = true;
-        } else {
+        } else if (strcmp(argv[i], "-noargs") == 0) {
+            exit(0);
+        }else {
             printf("Unknown command line argument %d: '%s'\n", i, argv[i]);
             assert(0);
         }

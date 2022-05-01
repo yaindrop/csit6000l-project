@@ -4,6 +4,7 @@
 #include "../data/Scene.h"
 #include "Arguments.h"
 #include "Image.h"
+#include <functional>
 
 class RenderFunction {
 public:
@@ -16,7 +17,8 @@ public:
         const Scene &scene,
         Image &img,
         RenderFunction &renderFunc,
-        bool jittered = false);
+        bool jittered,
+        function<void(double)> onProgress);
 };
 
 #endif // RENDERER_H

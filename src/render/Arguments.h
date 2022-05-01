@@ -8,22 +8,22 @@
 
 struct Arguments {
     Arguments() = delete;
-    Arguments(int argc, char *argv[]);
+    Arguments(int argc, const char **argv);
 
-    char *inputFile = NULL;
-    char *outputFile = NULL;
+    const char *inputFile = NULL;
+    const char *outputFile = NULL;
 
     // size
     int width = 100;
     int height = 100;
 
     // depth map
-    char *depthFile = NULL;
+    const char *depthFile = NULL;
     float depthMin = 0;
     float depthMax = 1;
 
     // normals map
-    char *normalsFile = NULL;
+    const char *normalsFile = NULL;
 
     // raytracing
     int bounces = 4;
