@@ -1,7 +1,7 @@
-import { Button, Cascader, Col, Divider, Input, InputNumber, Layout, PageHeader, Progress, Radio, Row, Select, Switch, TreeDataNode, TreeSelect } from 'antd';
+import { Button, Cascader, Col, Divider, Form, Input, InputNumber, Layout, PageHeader, Progress, Radio, Row, Select, Switch, TreeDataNode, TreeSelect } from 'antd';
 import { Content, Header } from 'antd/lib/layout/layout';
 import * as monaco from 'monaco-editor';
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, Component, useEffect, useRef, useState } from 'react';
 import { LinkOutlined } from '@ant-design/icons';
 const { Option } = Select;
 
@@ -14,6 +14,7 @@ import path from 'path';
 import { argsToFlags, Arguments, isArgsValid } from './type';
 import { DefaultOptionType } from 'antd/lib/cascader';
 import { SingleValueType } from 'rc-cascader/lib/Cascader';
+import { clamp } from './utils';
 
 function parseModuleArgs(module: WebModule, args: string[]): WebModule.StringVector {
     const argvec = new module.StringVector()
@@ -28,6 +29,8 @@ type CascaderDataNode = {
     children?: CascaderDataNode[]
 }
 
+const MAX_SIZE = 4096
+const MIN_SIZE = 1
 
 function cascaderFileTree(
     { FS }: WebModule,
@@ -63,20 +66,27 @@ function cascaderFileTree(
 }
 
 const defaultArguments: Partial<Arguments> = {
+    outputFile: 'out.bmp',
     width: 100,
     height: 100,
     bounces: 4,
 }
 
 export const App = () => {
-    const [outputUrl, setOutputUrl] = useState<string>()
     const [module, setModule] = useState<WebModule>()
-    const [treeData, setTreeData] = useState<CascaderDataNode[]>([])
+    const isModuleLoading = !module
+
+    const [imgUrl, setImgUrl] = useState<string>()
+
     const [moduleArgs, setModuleArgs] = useState<Partial<Arguments>>(defaultArguments)
+    const [inputFileTree, setInputFileTree] = useState<CascaderDataNode[]>([])
     const [isSizeLinked, setSizeLinked] = useState<boolean>(true)
+    const [sizeLinkRatio, setSizeLinkRatio] = useState<number>(1)
     const [isCheckingArgs, setCheckingArgs] = useState<boolean>(false)
-    const [moduleRunning, setModuleRunning] = useState<boolean>(false)
-    const [moduleProgress, setModuleProgress] = useState<number>(0)
+
+    const [isModuleRunning, setModuleRunning] = useState<boolean>(false)
+    const [moduleStatus, setModuleStatus] = useState<number>(0)
+    const [moduleCommand, setModuleCommand] = useState<string>()
 
     function updateModuleArgs(args: Partial<Arguments>) {
         const newArgs = { ...moduleArgs, ...args }
@@ -98,12 +108,12 @@ export const App = () => {
             console.log("module")
             const tree = cascaderFileTree(module, 'scene', p => path.parse(p).ext === '.txt')
             console.log(tree)
-            setTreeData([tree])
+            setInputFileTree([tree])
         }
     }, [module])
 
     function displayImage(module: WebModule, outputFile: string) {
-        setOutputUrl(URL.createObjectURL(
+        setImgUrl(URL.createObjectURL(
             new Blob([module.FS.readFile(outputFile).buffer], { type: 'image/png' })
         ))
     }
@@ -115,66 +125,55 @@ export const App = () => {
             setCheckingArgs(true)
             return
         }
-        console.log(argsToFlags(moduleArgs))
+
+        const flags = argsToFlags(moduleArgs)
+        setModuleCommand(['./proj', ...flags].join(' '))
         const argvec = parseModuleArgs(module, argsToFlags(moduleArgs))
 
-        const execHandle = module.exec(argvec, setModuleProgress)
+        const execHandle = module.exec(argvec, e => setModuleStatus(e.percentage))
+        setModuleRunning(true)
         if (typeof execHandle === "object") {
-            // const t1 = performance.now()
-            setModuleRunning(true)
             execHandle.then(() => {
-                // console.log(performance.now() - t1)
-                setModuleRunning(false)
                 displayImage(module, moduleArgs.outputFile)
+                setModuleRunning(false)
             })
         } else {
             displayImage(module, moduleArgs.outputFile)
+            setModuleRunning(false)
         }
     }
 
-    function outputFrameContent() {
-        if (outputUrl) {
-            return (
-                <img className='output-image' src={outputUrl} />
-            )
-        }
-        if (moduleRunning) {
-            return (
-                <div className='output-placeholder'>
-                    <Progress type="dashboard" percent={Math.round(moduleProgress * 100)} />
-                </div>
-            )
-        }
+    function renderButton() {
+        const buttonText = isModuleLoading ? "Loading" : isModuleRunning ? "Running" : "Render"
         return (
-            <div className='output-placeholder'>
+            <div className='output-render-button'>
                 <Button
+                    children={buttonText}
                     type='primary'
                     onClick={onRenderClick}
-                    disabled={!module}>
-                    Render
-                </Button>
+                    loading={isModuleLoading || isModuleRunning}
+                />
+                {isModuleRunning ?
+                    <Progress
+                        style={{ width: "100%" }}
+                        percent={Math.round(moduleStatus * 100)}
+                    /> : undefined}
+            </div>
+        )
+    }
+
+    function outputFrameContent() {
+        return (
+            <div>
+                {imgUrl && <img className='output-image' src={imgUrl} />}
+                {renderButton()}
             </div>
         )
     }
 
     /*
-     * Arguments Frame
+     * Arguments Form
      */
-
-    function argsFrameSection(title: string) {
-        return (
-            <Row className='args-frame-section'>
-                <h5>{title}</h5>
-            </Row>
-        )
-    }
-    function argsFrameOptionLabel(title: string, span = 6) {
-        return (
-            <Col span={span} className='args-frame-option-label'>
-                <span>{title}</span>
-            </Col>
-        )
-    }
 
     // File
     function inputFileCascaderDisplayRender(labels: string[], selectedOptions: DefaultOptionType[] | undefined) {
@@ -182,193 +181,254 @@ export const App = () => {
             return selectedOptions && <span key={selectedOptions[i].value}>{i !== 0 && '/'}{label}</span>
         })
     }
-    const inputFileSelectValue = inputFile ? inputFile.split('/') : undefined
-    const inputFileSelectStatus = isCheckingArgs && !inputFile ? "error" : undefined
-    function onInputFileSelectChange(value: SingleValueType) {
-        const inputFile = value.join('/')
+    const inputFileSelectStatus = isCheckingArgs
+        ? inputFile ? "success" : "error"
+        : undefined
+    const inputFileSelectHelp = isCheckingArgs && !inputFile ? "Input file is required" : undefined
+    function onInputFileSelectChange(value?: SingleValueType) {
+        const inputFile = value?.join('/')
         updateModuleArgs({ inputFile })
     }
+    const inputFileSelectValue = inputFile ? inputFile.split('/') : undefined
     function inputFileSelect() {
         return (
-            <Row className='args-frame-option'>
-                {argsFrameOptionLabel("Input")}
-                <Col span={18}>
-                    <Cascader
-                        style={{ width: "100%" }}
-                        options={treeData}
-                        placeholder="Input Scene File"
-                        expandTrigger="hover"
-                        displayRender={inputFileCascaderDisplayRender}
-                        value={inputFileSelectValue}
-                        status={inputFileSelectStatus}
-                        onChange={onInputFileSelectChange}
-                    />
-                </Col>
-            </Row>
+            <Form.Item
+                label="Input"
+                validateStatus={inputFileSelectStatus}
+                help={inputFileSelectHelp}>
+                <Cascader
+                    options={inputFileTree}
+                    placeholder="Input Scene File"
+                    expandTrigger="hover"
+                    displayRender={inputFileCascaderDisplayRender}
+                    value={inputFileSelectValue}
+                    // status={inputFileSelectStatus}
+                    onChange={onInputFileSelectChange}
+                />
+            </Form.Item >
         )
     }
 
-    const outputFileInputValue = outputFile ? outputFile.substring(0, outputFile.lastIndexOf('.')) : undefined
-    const outputFileInputStatus = isCheckingArgs && !outputFile ? "error" : undefined
+    const outputFileInputStatus = isCheckingArgs
+        ? outputFile ? "success" : "error"
+        : undefined
+    const outputFileInputHelp = isCheckingArgs && !outputFile ? "Output file is required" : undefined
     function onOutputFileInputChange(e: ChangeEvent<HTMLInputElement>) {
         const outputFile = e.target.value ? e.target.value + '.bmp' : undefined
         updateModuleArgs({ outputFile })
     }
+    const outputFileInputValue = outputFile ? outputFile.substring(0, outputFile.lastIndexOf('.')) : undefined
     function outputFileInput() {
         return (
-            <Row className='args-frame-option'>
-                {argsFrameOptionLabel("Output")}
-                <Col span={18}>
-                    <Input
-                        placeholder="Output Filename"
-                        addonAfter=".bmp"
-                        value={outputFileInputValue}
-                        status={outputFileInputStatus}
-                        onChange={onOutputFileInputChange}
-                    />
-                </Col>
-            </Row>
+            <Form.Item
+                label="Output"
+                validateStatus={outputFileInputStatus}
+                help={outputFileInputHelp}>
+                <Input
+                    placeholder="Output Filename"
+                    addonAfter=".bmp"
+                    value={outputFileInputValue}
+                    onChange={onOutputFileInputChange}
+                />
+            </Form.Item >
         )
     }
 
-    function onWidthChange(width: number) {
-        let height = moduleArgs.height
-        if (isSizeLinked && moduleArgs.width && moduleArgs.height)
-            height = Math.round(width / moduleArgs.width * moduleArgs.height)
+    function updateLinkedWidth(newWidth: number) {
+        let { width, height } = moduleArgs
+        if (height && width) {
+            height = clamp(MIN_SIZE, MAX_SIZE, Math.round(newWidth / sizeLinkRatio))
+        } else if (!height) {
+            height = newWidth
+        }
+        width = newWidth
         updateModuleArgs({ width, height })
     }
-    function onHeightChange(height: number) {
-        let width = moduleArgs.width
-        if (isSizeLinked && moduleArgs.width && moduleArgs.height)
-            width = Math.round(height / moduleArgs.height * moduleArgs.width)
+    function updateLinkedHeight(newHeight: number) {
+        let { width, height } = moduleArgs
+        if (width && height) {
+            width = clamp(1, MAX_SIZE, Math.round(newHeight * sizeLinkRatio))
+        } else if (!width) {
+            width = newHeight
+        }
+        height = newHeight
         updateModuleArgs({ width, height })
+    }
+    function onWidthChange(width: number) {
+        if (isSizeLinked) {
+            updateLinkedWidth(width)
+        } else {
+            updateModuleArgs({ width })
+        }
+    }
+    function onHeightChange(height: number) {
+        if (isSizeLinked) {
+            updateLinkedHeight(height)
+        } else {
+            updateModuleArgs({ height })
+        }
+    }
+    function onLinkClick() {
+        if (!isSizeLinked) {
+            if (moduleArgs.width && moduleArgs.height) {
+                setSizeLinked(true)
+                setSizeLinkRatio(moduleArgs.width / moduleArgs.height)
+            }
+        } else {
+            setSizeLinked(false)
+            setSizeLinkRatio(1)
+        }
     }
     function sizeInputs() {
         return (
-            <Row className='args-frame-option'>
-                {argsFrameOptionLabel("Size")}
-                <Col span={18}>
-                    <InputNumber
-                        style={{ width: 72 }}
-                        placeholder={"Width"}
-                        min={1}
-                        max={4096}
-                        step={100}
-                        value={moduleArgs?.width}
-                        onChange={onWidthChange}
-                    />
-                    <Button
-                        style={{ marginLeft: 4, marginRight: 4 }}
-                        icon={<LinkOutlined />}
-                        shape="circle"
-                        type={isSizeLinked ? "primary" : "ghost"}
-                        onClick={() => setSizeLinked(!isSizeLinked)}
-                    />
-                    <InputNumber
-                        style={{ width: 72 }}
-                        placeholder={"Height"}
-                        min={1}
-                        max={4096}
-                        step={100}
-                        value={moduleArgs?.height}
-                        onChange={onHeightChange}
-                    />
-                </Col>
-            </Row>
+            <Form.Item label="Size" >
+                <InputNumber
+                    style={{ width: 72 }}
+                    placeholder={"Width"}
+                    min={MIN_SIZE}
+                    max={MAX_SIZE}
+                    step={100}
+                    value={moduleArgs?.width}
+                    onChange={onWidthChange}
+                />
+                <Button
+                    style={{ marginLeft: 8, marginRight: 8 }}
+                    icon={<LinkOutlined />}
+                    shape="circle"
+                    type={isSizeLinked ? "primary" : "ghost"}
+                    onClick={onLinkClick}
+                />
+                <InputNumber
+                    style={{ width: 72 }}
+                    placeholder={"Height"}
+                    min={MIN_SIZE}
+                    max={MAX_SIZE}
+                    step={100}
+                    value={moduleArgs?.height}
+                    onChange={onHeightChange}
+                />
+            </Form.Item >
         )
     }
 
     // Rendering
     function rendererSelect() {
         return (
-            <Row className='args-frame-option'>
-                {argsFrameOptionLabel("Renderer")}
-                <Col span={18}>
-                    <Select
-                        style={{ width: 120 }}
-                        value={moduleArgs.rayCasting ? "caster" : "tracer"}
-                        onChange={v => updateModuleArgs({ rayCasting: v === "caster" })}>
-                        <Option value="caster">RayCaster</Option>
-                        <Option value="tracer">RayTracer</Option>
-                    </Select>
-                </Col>
-            </Row>
+            <Form.Item label="Renderer" >
+                <Select
+                    style={{ width: 120 }}
+                    value={moduleArgs.rayCasting ? "caster" : "tracer"}
+                    onChange={v => updateModuleArgs({ rayCasting: v === "caster" })}>
+                    <Option value="caster">RayCaster</Option>
+                    <Option value="tracer">RayTracer</Option>
+                </Select>
+            </Form.Item >
         )
     }
 
     function rayTracerOptions() {
         return (
-            <Row className='args-frame-option'>
-                {argsFrameOptionLabel("Bounces")}
-                <Col span={6}>
+            <Form.Item label="Bounces" style={{ marginBottom: 0 }}>
+                <Form.Item
+                    style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
                     <InputNumber
                         style={{ width: 56 }}
                         value={moduleArgs?.bounces}
                         onChange={bounces => { updateModuleArgs({ bounces }) }}
                     />
-                </Col>
-                {argsFrameOptionLabel("Shadows")}
-                <Col span={6}>
+                </Form.Item >
+                <span
+                    style={{ display: 'inline-block', width: '72px', lineHeight: '32px', textAlign: 'center' }}>
+                    Shadows:
+                </span>
+                <Form.Item style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
                     <Switch
                         checked={moduleArgs?.shadows}
                         onChange={shadows => { updateModuleArgs({ shadows }) }}
                     />
-                </Col>
-            </Row>
+                </Form.Item >
+            </Form.Item>
         )
     }
 
     function rayCasterOptions() {
         return (
-            <Row className='args-frame-option'>
-                {argsFrameOptionLabel("Bluring")}
-                <Col span={6}>
-                    <Switch />
-                </Col>
-                {argsFrameOptionLabel("Focus")}
-                <Col span={6}>
-                    <InputNumber />
-                </Col>
-            </Row>
+            <Form.Item label="Blurring" style={{ marginBottom: 0 }}>
+                <Form.Item
+                    style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
+                    <Switch
+                        disabled
+                    // checked={moduleArgs?.shadows}
+                    // onChange={shadows => { updateModuleArgs({ shadows }) }}
+                    />
+                </Form.Item >
+                <span
+                    style={{ display: 'inline-block', width: '72px', lineHeight: '32px', textAlign: 'center' }}>
+                    Focus:
+                </span>
+                <Form.Item style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
+                    <InputNumber
+                        disabled
+                        style={{ width: 56 }}
+                    // value={moduleArgs?.bounces}
+                    // onChange={bounces => { updateModuleArgs({ bounces }) }}
+                    />
+                </Form.Item >
+            </Form.Item>
         )
     }
 
     // Sampling
     function samplingOptions() {
         return (
-            <Row className='args-frame-option'>
-                {argsFrameOptionLabel("Jitter")}
-                <Col span={6}>
+            <Form.Item label="Jitter" style={{ marginBottom: 0 }}>
+                <Form.Item
+                    style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
                     <Switch
                         checked={moduleArgs?.jitter}
                         onChange={jitter => { updateModuleArgs({ jitter }) }}
                     />
-                </Col>
-                {argsFrameOptionLabel("Filter")}
-                <Col span={6}>
+                </Form.Item >
+                <span
+                    style={{ display: 'inline-block', width: '72px', lineHeight: '32px', textAlign: 'center' }}>
+                    Filter:
+                </span>
+                <Form.Item style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
                     <Switch
                         checked={moduleArgs?.filter}
                         onChange={filter => { updateModuleArgs({ filter }) }}
                     />
-                </Col>
-            </Row>
+                </Form.Item >
+            </Form.Item>
         )
     }
 
-    function argsFrame() {
+    function argsForm() {
         return (
-            <div className='args-frame'>
-                {argsFrameSection('File')}
+            <Form labelCol={{ span: 4 }}
+                wrapperCol={{ span: 20 }}>
                 {inputFileSelect()}
                 {outputFileInput()}
                 {sizeInputs()}
 
-                {argsFrameSection('Rendering')}
                 {rendererSelect()}
-                {rayTracerOptions()}
+                {moduleArgs.rayCasting ? rayCasterOptions() : rayTracerOptions()}
 
-                {argsFrameSection('Sampling')}
                 {samplingOptions()}
+            </Form>
+        )
+    }
+
+    function renderingCommand() {
+        return (
+            <div className='rendering-command'>
+                <h4>Command </h4>
+                <div style={{
+                    fontFamily: "consolas, monospace",
+                    marginLeft: '16px',
+                }}>
+                    {moduleCommand}
+                </div>
             </div>
         )
     }
@@ -390,7 +450,8 @@ export const App = () => {
                     </Col>
                     <Col span={12} className='args-panel'>
                         <h4>Arguments</h4>
-                        {argsFrame()}
+                        {argsForm()}
+                        {moduleCommand ? renderingCommand() : undefined}
                     </Col>
                 </Row>
             </Content>

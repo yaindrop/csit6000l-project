@@ -41,7 +41,7 @@ module.exports = {
     output: {
         globalObject: 'self',
         filename: '[name].bundle.js',
-        path: path.resolve(__dirname, '../front-dist')
+        path: path.resolve(__dirname, 'dist')
     },
     module: {
         noParse: [require.resolve('typescript/lib/typescript.js')],

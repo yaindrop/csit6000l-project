@@ -13,6 +13,13 @@ using namespace emscripten;
 
 #define CALLBACK_FREQUENCY 60
 
+inline val progressEvent(double percentage) {
+    val res = val::object();
+    res.set("type", 0);
+    res.set("percentage", percentage);
+    return res;
+}
+
 std::string exec(std::vector<std::string> argvec, val cb) {
     int argc = argvec.size() + 1;
     const char **argv = new const char *[argc];
@@ -28,7 +35,7 @@ std::string exec(std::vector<std::string> argvec, val cb) {
         auto t1 = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
         if ((t1 - t0).count() * CALLBACK_FREQUENCY > 1000) {
             t0 = t1;
-            cb(p);
+            cb(progressEvent(p));
             emscripten_sleep(0);
         }
     };
