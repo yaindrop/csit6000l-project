@@ -7,7 +7,7 @@
 class Camera {
 public:
     // generate rays for each screen-space coordinate
-    virtual Ray generateRay(const Vector2f &point) = 0;
+    virtual Ray generateRay(const Vector2f &point) const = 0;
     virtual float getTMin() const = 0;
     virtual ~Camera() {}
 
@@ -27,7 +27,7 @@ public:
           w(direction.normalized()),
           u(Vector3f::cross(w, up).normalized()),
           v(Vector3f::cross(u, w).normalized()) {}
-    Ray generateRay(const Vector2f &point);
+    Ray generateRay(const Vector2f &point) const;
     float getTMin() const {
         return 0.0f;
     }
@@ -52,7 +52,7 @@ public:
           v(Vector3f::cross(u, w).normalized()),
           focus_dist(focus_dist),
           aperture(aperture) {}
-    Ray generateRay(const Vector2f &point);
+    Ray generateRay(const Vector2f &point) const;
     float getTMin() const {
         return 0.0f;
     }

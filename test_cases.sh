@@ -34,3 +34,5 @@ mkdir output/
  -shadows -bounces 4 -jitter -filter
 ./proj -input scene/scene13_diamond.txt  -size 300 300 -output output/13.bmp\
  -shadows -bounces 4 -jitter -filter
+
+./blurry.sh
