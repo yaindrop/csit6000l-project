@@ -39,6 +39,8 @@ Vector3f Texture::operator()(float x, float y) const {
     for (int ii = 0; ii < 3; ii++) {
         color[ii] = (1 - alpha) * (1 - beta) * pixels[0][ii] + alpha * (1 - beta) * pixels[1][ii] + (1 - alpha) * beta * pixels[2][ii] + alpha * beta * pixels[3][ii];
     }
+    // for (int ii = 0; ii < 3; ii++) 
+    //     color[ii] = pixels[0][ii];
     return color / 255;
 }
 
