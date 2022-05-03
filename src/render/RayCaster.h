@@ -15,7 +15,6 @@ public:
 
 protected:
     const Arguments &args;
-    bool useRayCastingShaing = true;
 };
 
 class DepthRayCaster : public RayCaster {
@@ -32,9 +31,7 @@ public:
 
 class BlurryRayCaster : public RayCaster {
 public:
-    BlurryRayCaster(const Arguments &args) : RayCaster(args) {
-        useRayCastingShaing = false;
-    }
+    BlurryRayCaster(const Arguments &args) : RayCaster(args) {}
     virtual Vector3f renderPixel(const Scene &scene, const Camera &camera, Vector2f position);
 };
 
