@@ -22,12 +22,16 @@ void printProgress(double percentage, int length = 60) {
          << 100 * percentage << "% " << flush;
 }
 
+Vector3f RenderFunction::renderPixel(const Scene &scene, const Camera &camera, Vector2f position) {
+    auto ray = camera.generateRay(position);
+    return render(scene, ray);
+}
+
 void Renderer::renderScene(
     const Scene &scene,
     Image &img,
     RenderFunction &func,
     bool jittered) {
-
     int w = img.getWidth(), h = img.getHeight();
     if (jittered) {
         w *= 3;
@@ -43,46 +47,8 @@ void Renderer::renderScene(
                 y += (float)rand() / RAND_MAX - 0.5;
             }
             x = -1 + 2 * x / (w - 1), y = -1 + 2 * y / (h - 1);
-            auto ray = camera.generateRay(Vector2f(x, y));
-            img.setPixel(j, i, func.render(scene, ray));
-        }
-        printProgress((float)(i + 1) / w);
-    }
-    cout << endl;
-}
-
-void Renderer::renderBlurryScene(
-    const Scene &scene,
-    Image &img,
-    RenderFunction &func,
-    bool jittered) {
-    // return renderScene(scene, img, func);
-
-    int w = img.getWidth(), h = img.getHeight();
-    if (jittered) {
-        w *= 3;
-        h *= 3;
-        img.reset(w, h);
-    }
-    auto &thinLensCamera = scene.getThinLensCamera();
-    auto &camera = scene.getCamera();
-    float sample_size = 10.0f;
-    for (int i = 0; i < w; ++i) {
-        for (int j = 0; j < h; ++j) {
-            Vector3f pixel_col = Vector3f::ZERO;
-
-            float x = i, y = j;
-            if (jittered) {
-                x += (float)rand() / RAND_MAX - 0.5;
-                y += (float)rand() / RAND_MAX - 0.5;
-            }
-            x = -1 + 2 * x / (w - 1), y = -1 + 2 * y / (h - 1);
-            for (int k = 0; k < sample_size; ++k) {
-                auto ray = thinLensCamera.generateRay(Vector2f(x, y));
-                pixel_col += func.render(scene, ray);
-            }
-            pixel_col = pixel_col / sample_size;
-            img.setPixel(i, j, pixel_col);
+            auto pixel = func.renderPixel(scene, camera, Vector2f(x, y));
+            img.setPixel(i, j, pixel);
         }
         printProgress((float)(i + 1) / w);
     }

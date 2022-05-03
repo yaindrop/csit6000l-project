@@ -29,6 +29,9 @@ public:
         return *group;
     }
     Camera &getCamera() const {
+        if (useThinLenCamera) {
+            return *thinLenCamera;
+        }
         return *camera;
     }
     Vector3f getBackgroundColor(Vector3f dir = Vector3f::RIGHT) const {
@@ -57,12 +60,15 @@ public:
     bool hasCubeMap() const {
         return cubemap != NULL;
     }
-    void setThinLensCamera(float focus_dist);
-    Camera &getThinLensCamera() const;
+    void setThinLensCamera(float focus_dist) {
+        useThinLenCamera = true;
+        thinLenCamera = new ThinLensCamera(center, direction, up, angle_radians, focus_dist);
+    }
 
 private:
     Group *group = NULL;
     Camera *camera = NULL;
+    bool useThinLenCamera = false;
     Camera *thinLenCamera = NULL;
     Vector3f background_color = Vector3f(0.5, 0.5, 0.5);
     Vector3f ambient_light = Vector3f(0, 0, 0);
