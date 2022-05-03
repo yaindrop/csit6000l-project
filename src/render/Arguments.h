@@ -34,6 +34,11 @@ struct Arguments {
     bool filter = false;
 
     bool rayCasting = false;
+
+    // blurring
+    bool blurry = false;
+    float focus_dist = 0;
+    char *blurryFile = NULL;
 };
 
 #endif // ARGUMENTS_H

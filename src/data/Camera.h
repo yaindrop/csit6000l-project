@@ -7,7 +7,7 @@
 class Camera {
 public:
     // generate rays for each screen-space coordinate
-    virtual Ray generateRay(const Vector2f &point) = 0;
+    virtual Ray generateRay(const Vector2f &point) const = 0;
     virtual float getTMin() const = 0;
     virtual ~Camera() {}
 
@@ -27,7 +27,7 @@ public:
           w(direction.normalized()),
           u(Vector3f::cross(w, up).normalized()),
           v(Vector3f::cross(u, w).normalized()) {}
-    Ray generateRay(const Vector2f &point);
+    Ray generateRay(const Vector2f &point) const;
     float getTMin() const {
         return 0.0f;
     }
@@ -41,4 +41,30 @@ private:
     Vector3f v;
 };
 
+class ThinLensCamera : public Camera {
+public:
+    ThinLensCamera(const Vector3f &center, const Vector3f &direction,
+                   const Vector3f &up, float angle, float focus_dist, float aperture = 0.1f)
+        : center(center),
+          angle(angle),
+          w(direction.normalized()),
+          u(Vector3f::cross(direction, up).normalized()),
+          v(Vector3f::cross(u, w).normalized()),
+          focus_dist(focus_dist),
+          aperture(aperture) {}
+    Ray generateRay(const Vector2f &point) const;
+    float getTMin() const {
+        return 0.0f;
+    }
+
+private:
+    float aspect = 1;
+    Vector3f center;
+    float angle;
+    Vector3f w;
+    Vector3f u;
+    Vector3f v;
+    float focus_dist;
+    float aperture;
+};
 #endif // CAMERA_H

@@ -1,1 +1,4 @@
 obj/
+.vscode/*.log
+front/
+emobj/

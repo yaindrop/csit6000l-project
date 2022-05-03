@@ -74,20 +74,21 @@ void SceneParser::parsePerspectiveCamera() {
     assert(!strcmp(token, "{"));
     getToken(token);
     assert(!strcmp(token, "center"));
-    Vector3f center = readVector3f();
+    scene.center = readVector3f();
     getToken(token);
     assert(!strcmp(token, "direction"));
-    Vector3f direction = readVector3f();
+    scene.direction = readVector3f();
     getToken(token);
     assert(!strcmp(token, "up"));
-    Vector3f up = readVector3f();
+    scene.up = readVector3f();
     getToken(token);
     assert(!strcmp(token, "angle"));
     float angle_degrees = readFloat();
-    float angle_radians = DegreesToRadians(angle_degrees);
+    scene.angle_radians = DegreesToRadians(angle_degrees);
     getToken(token);
     assert(!strcmp(token, "}"));
-    scene.camera = new PerspectiveCamera(center, direction, up, angle_radians);
+
+    scene.camera = new PerspectiveCamera(scene.center, scene.direction, scene.up, scene.angle_radians);
 }
 
 void SceneParser::parseBackground() {
@@ -115,7 +116,7 @@ void SceneParser::parseBackground() {
 CubeMap *SceneParser::parseCubeMap() {
     char token[MAX_PARSER_TOKEN_LENGTH];
     getToken(token);
-    return new CubeMap(getRelativePath(token).c_str());
+    return new CubeMap(getRelativePath(token).string().c_str());
 }
 
 // ====================================================================
@@ -247,7 +248,7 @@ Material *SceneParser::parseMaterial() {
     }
     Material *answer = new Material(diffuseColor, specularColor, shininess, refractionIndex);
     if (filename[0] != 0) {
-        answer->loadTexture(getRelativePath(filename).c_str());
+        answer->loadTexture(getRelativePath(filename).string().c_str());
     }
     if (noise != NULL) {
         answer->setNoise(*noise);
@@ -424,7 +425,7 @@ Mesh *SceneParser::parseTriangleMesh() {
     assert(!strcmp(token, "}"));
     const char *ext = &filename[strlen(filename) - 4];
     assert(!strcmp(ext, ".obj"));
-    Mesh *answer = new Mesh(getRelativePath(filename).c_str(), current_material);
+    Mesh *answer = new Mesh(getRelativePath(filename).string().c_str(), current_material);
 
     return answer;
 }

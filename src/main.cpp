@@ -43,7 +43,6 @@ int main(int argc, char *argv[]) {
         }
         img.saveImage(args.outputFile);
     }
-
     if (args.depthFile) {
         Image img(args.width, args.height);
         DepthRayCaster drc(args);
@@ -56,6 +55,14 @@ int main(int argc, char *argv[]) {
         NormalsRayCaster nrc(args);
         Renderer::renderScene(scene, img, nrc);
         img.saveImage(args.normalsFile);
+    }
+
+    if (args.blurry) {
+        Image img(args.width, args.height);
+        BlurryRayCaster brc(args);
+        scene.setThinLensCamera(args.focus_dist);
+        Renderer::renderScene(scene, img, brc, args.jitter);
+        img.saveImage(args.blurryFile);
     }
 
     return 0;

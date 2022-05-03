@@ -8,7 +8,7 @@ Vector3f RayCaster::render(const Scene &scene, const Ray &ray) {
             Vector3f lightDirection, lightColor, shadingColor;
             float dist;
             scene.getLight(li).getIllumination(ray(hit.getT()), lightDirection, lightColor, dist);
-            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, true);
+            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, useRayCastingShaing);
             color = color + shadingColor;
         }
         return color;
@@ -43,4 +43,15 @@ Vector3f NormalsRayCaster::render(const Scene &scene, const Ray &ray) {
     } else {
         return Vector3f::ZERO;
     }
+}
+
+#define SAMPLE_SIZE 10.0f
+Vector3f BlurryRayCaster::renderPixel(const Scene &scene, const Camera &camera, Vector2f position) {
+    Vector3f res;
+    for (int k = 0; k < SAMPLE_SIZE; ++k) {
+        auto ray = camera.generateRay(position);
+        res += render(scene, ray);
+    }
+    res = res / SAMPLE_SIZE;
+    return res;
 }

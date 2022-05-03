@@ -22,6 +22,11 @@ void printProgress(double percentage, int length = 60) {
          << 100 * percentage << "% " << flush;
 }
 
+Vector3f RenderFunction::renderPixel(const Scene &scene, const Camera &camera, Vector2f position) {
+    auto ray = camera.generateRay(position);
+    return render(scene, ray);
+}
+
 void Renderer::renderScene(
     const Scene &scene,
     Image &img,
@@ -42,8 +47,8 @@ void Renderer::renderScene(
                 y += (float)rand() / RAND_MAX - 0.5;
             }
             x = -1 + 2 * x / (w - 1), y = -1 + 2 * y / (h - 1);
-            auto ray = camera.generateRay(Vector2f(x, y));
-            img.setPixel(j, i, func.render(scene, ray));
+            auto pixel = func.renderPixel(scene, camera, Vector2f(x, y));
+            img.setPixel(i, j, pixel);
         }
         printProgress((float)(i + 1) / w);
     }
