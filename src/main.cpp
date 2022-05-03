@@ -29,9 +29,7 @@ int main(int argc, char *argv[]) {
     Scene scene(args.inputFile);
 
     if (args.outputFile) {
-
         Image img(args.width, args.height);
-
         if (args.rayCasting) {
             RayCaster rc(args);
             Renderer::renderScene(scene, img, rc);
@@ -40,7 +38,6 @@ int main(int argc, char *argv[]) {
             Renderer::renderScene(scene, img, rt, args.jitter);
         }
         if (args.filter) {
-
             Smoothing::gaussian(img, kernel);
             img.setSamplingRate(3);
         }
@@ -64,7 +61,7 @@ int main(int argc, char *argv[]) {
         Image img(args.width, args.height);
         BlurryRayCaster brc(args);
         scene.setThinLensCamera(args.focus_dist);
-        Renderer::renderBlurryScene(scene, img, brc, args.jitter);
+        Renderer::renderScene(scene, img, brc, args.jitter);
         img.saveImage(args.blurryFile);
     }
 

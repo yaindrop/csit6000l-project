@@ -15,25 +15,27 @@ public:
 
 protected:
     const Arguments &args;
-    bool rayCasting = true;
+    bool useRayCastingShaing = true;
 };
 
 class DepthRayCaster : public RayCaster {
 public:
     DepthRayCaster(const Arguments &args) : RayCaster(args) {}
-    Vector3f render(const Scene &scene, const Ray &ray);
+    virtual Vector3f render(const Scene &scene, const Ray &ray);
 };
 
 class NormalsRayCaster : public RayCaster {
 public:
     NormalsRayCaster(const Arguments &args) : RayCaster(args) {}
-    Vector3f render(const Scene &scene, const Ray &ray);
+    virtual Vector3f render(const Scene &scene, const Ray &ray);
 };
 
 class BlurryRayCaster : public RayCaster {
 public:
-    BlurryRayCaster(const Arguments &args) : RayCaster(args) {}
-    Vector3f render(const Scene &scene, const Ray &ray);
+    BlurryRayCaster(const Arguments &args) : RayCaster(args) {
+        useRayCastingShaing = false;
+    }
+    virtual Vector3f renderPixel(const Scene &scene, const Camera &camera, Vector2f position);
 };
 
 #endif // RAYCASTER_H
