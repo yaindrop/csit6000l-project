@@ -1,0 +1,39 @@
+
+PerspectiveCamera {
+    center 3 3 3
+    direction -1 -1 -1
+    up 0 1 0
+    angle 30
+}
+
+Lights {
+    numLights 1
+    PointLight {
+        position 6 6 6
+        color 0.8 0.8 0.8 
+    }
+}
+
+Background {
+    color 0.2 0.2 0.2
+    ambientLight 0.1 0.1 0.1 
+}
+
+Materials {
+    numMaterials 1
+    PhongMaterial { 
+	  diffuseColor 0.2 0.2 0.2 
+	  specularColor 0.7 0.7 0.7
+	  shininess 20
+	  texture brick.bmp
+      normal brick_n.bmp
+	}
+}
+
+Group {
+    numObjects 1
+    MaterialIndex 0
+    TriangleMesh {
+        obj_file block.obj
+    }
+}

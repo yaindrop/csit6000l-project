@@ -19,6 +19,7 @@ protected:
     Vector3f a;
     Vector3f b;
     Vector3f c;
+    void setTbn(Hit &h);
 };
 
 #endif // TRIANGLE_H

@@ -13,6 +13,8 @@ public:
     bool hasTex = false;
     Vector2f texCoord;
     bool casting = false;
+    bool hasTbn = false;
+    Matrix3f tbn;
 
     Hit() {}
     Hit(bool casting) : casting(casting) {}
@@ -43,7 +45,10 @@ public:
         texCoord = coord;
         hasTex = true;
     }
-
+    void setTbn(const Matrix3f &tbn) {
+        this->tbn = tbn;
+        hasTbn = true;
+    }
 private:
     float t = FLT_MAX;
     Material *material = NULL;

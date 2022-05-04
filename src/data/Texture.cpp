@@ -36,14 +36,21 @@ Vector3f Texture::operator()(float x, float y) const {
     operator()(ix + 1, iy, pixels[1]);
     operator()(ix, iy + 1, pixels[2]);
     operator()(ix + 1, iy + 1, pixels[3]);
-    for (int ii = 0; ii < 3; ii++) {
-        color[ii] = (1 - alpha) * (1 - beta) * pixels[0][ii] + alpha * (1 - beta) * pixels[1][ii] + (1 - alpha) * beta * pixels[2][ii] + alpha * beta * pixels[3][ii];
-    }
-    // for (int ii = 0; ii < 3; ii++) 
-    //     color[ii] = pixels[0][ii];
+    // for (int ii = 0; ii < 3; ii++) {
+    //     color[ii] = (1 - alpha) * (1 - beta) * pixels[0][ii] + alpha * (1 - beta) * pixels[1][ii] + (1 - alpha) * beta * pixels[2][ii] + alpha * beta * pixels[3][ii];
+    // }
+    for (int ii = 0; ii < 3; ii++)
+        color[ii] = pixels[0][ii];
     return color / 255;
 }
 
 Vector3f Texture::operator()(const Vector2f &point) const {
     return operator()(point[0], point[1]);
+}
+
+Vector3f NormalMap::operator()(const Vector2f &point) const {
+    auto color = Texture::operator()(point);
+    return -Vector3f((2 * color.x()) - 1,
+                     (2 * color.y()) - 1,
+                     (0.5 - color.z()) / 0.5);
 }

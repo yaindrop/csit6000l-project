@@ -29,6 +29,9 @@ public:
     void loadTexture(const char *filename) {
         t.load(filename);
     }
+    void loadNormalMap(const char *filename) {
+        normalMap.load(filename);
+    }
     void setNoise(const Noise &n) {
         noise = n;
     }
@@ -39,6 +42,7 @@ protected:
     float shininess;
     float refractionIndex;
     Texture t;
+    NormalMap normalMap;
     Noise noise;
 };
 

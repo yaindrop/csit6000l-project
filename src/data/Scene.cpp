@@ -215,8 +215,10 @@ void SceneParser::parseMaterials() {
 
 Material *SceneParser::parseMaterial() {
     char token[MAX_PARSER_TOKEN_LENGTH];
-    char filename[MAX_PARSER_TOKEN_LENGTH];
-    filename[0] = 0;
+    char textureFileName[MAX_PARSER_TOKEN_LENGTH];
+    textureFileName[0] = 0;
+    char normalMapFileName[MAX_PARSER_TOKEN_LENGTH];
+    normalMapFileName[0] = 0;
     Vector3f diffuseColor(1, 1, 1), specularColor(0, 0, 0);
     float shininess = 0;
     float refractionIndex = 0;
@@ -234,7 +236,9 @@ Material *SceneParser::parseMaterial() {
         } else if (strcmp(token, "refractionIndex") == 0) {
             refractionIndex = readFloat();
         } else if (strcmp(token, "texture") == 0) {
-            getToken(filename);
+            getToken(textureFileName);
+        } else if (strcmp(token, "normal") == 0) {
+            getToken(normalMapFileName);
         }
         /// unimplemented
         else if (strcmp(token, "bump") == 0) {
@@ -247,8 +251,11 @@ Material *SceneParser::parseMaterial() {
         }
     }
     Material *answer = new Material(diffuseColor, specularColor, shininess, refractionIndex);
-    if (filename[0] != 0) {
-        answer->loadTexture(getRelativePath(filename).string().c_str());
+    if (textureFileName[0] != 0) {
+        answer->loadTexture(getRelativePath(textureFileName).string().c_str());
+    }
+    if (normalMapFileName[0] != 0) {
+        answer->loadNormalMap(getRelativePath(normalMapFileName).string().c_str());
     }
     if (noise != NULL) {
         answer->setNoise(*noise);

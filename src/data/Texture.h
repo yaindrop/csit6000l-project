@@ -16,11 +16,16 @@ public:
     void operator()(int x, int y, unsigned char *color) const;
     ///@param x assumed to be between 0 and 1
     Vector3f operator()(float x, float y) const;
-    Vector3f operator()(const Vector2f &point) const;
+    virtual Vector3f operator()(const Vector2f &point) const;
 
 private:
     bitmap_image *bimg;
     int width, height;
+};
+
+class NormalMap : public Texture {
+public:
+    virtual Vector3f operator()(const Vector2f &point) const;
 };
 
 #endif // TEXTURE_H
