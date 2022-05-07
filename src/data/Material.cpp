@@ -25,5 +25,5 @@ Vector3f Material::getEnvironmentColor(const Ray &ray, const Hit &hit) const {
     auto N = hit.getNormal();
     auto d = ray.getDirection();
     auto reflection =  d - 2 * Vector3f::dot(d, N) * N;
-    return cubemap->operator()(reflection);
+    return 0.5 * cubemap->operator()(reflection) + 0.5 * noise.getColor(ray.getOrigin() + ray.getDirection() * hit.getT());
 }
