@@ -52,7 +52,7 @@ Group {
     Sphere {
 	center -1 1 -1 
         radius 0.75
-    }
+    } 
     Sphere {
 	center 1 -1 -1 
         radius 0.75 

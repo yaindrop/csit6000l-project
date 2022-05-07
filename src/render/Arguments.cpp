@@ -21,7 +21,7 @@ Arguments::Arguments(int argc, const char **argv) {
         } else if (!strcmp(argv[i], "-size")) {
             i++;
             assert(i < argc);
-            width = atoi(argv[i]);
+            width = atoi(argv[i]); 
             i++;
             assert(i < argc);
             height = atoi(argv[i]);
