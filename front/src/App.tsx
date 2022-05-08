@@ -495,15 +495,15 @@ export const App = () => {
         )
     }
 
+    const [isBlurryEnabled, setBlurryEnabled] = useState(false)
     function rayCasterOptions() {
         return (
             <Form.Item label="Blurring" style={{ marginBottom: 0 }}>
                 <Form.Item
                     style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
                     <Switch
-                        disabled
-                    // checked={moduleArgs?.shadows}
-                    // onChange={shadows => { updateModuleArgs({ shadows }) }}
+                        checked={isBlurryEnabled}
+                        onChange={setBlurryEnabled}
                     />
                 </Form.Item >
                 <span
@@ -512,10 +512,9 @@ export const App = () => {
                 </span>
                 <Form.Item style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
                     <InputNumber
-                        disabled
-                        style={{ width: 56 }}
-                    // value={moduleArgs?.bounces}
-                    // onChange={bounces => { updateModuleArgs({ bounces }) }}
+                        disabled={!isBlurryEnabled}
+                        value={moduleArgs?.blurry}
+                        onChange={blurry => { updateModuleArgs({ blurry }) }}
                     />
                 </Form.Item >
             </Form.Item>

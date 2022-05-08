@@ -28,6 +28,9 @@ export type Arguments = {
     // renderer
     rayCasting?: boolean
 
+    // blurring
+    blurry: number
+
     pixelated?: boolean
 }
 
@@ -61,6 +64,14 @@ export function argsToFlags(args: Arguments): string[] {
     }
     if (args.rayCasting) {
         res.push('-casting')
+    }
+    if (args.blurry) {
+        res.push(`-blurry`)
+        res.push(`${args.blurry}`)
+        res.push(args.outputFile)
+    }
+    if (args.pixelated) {
+        res.push('-pixelated')
     }
     return res
 }
