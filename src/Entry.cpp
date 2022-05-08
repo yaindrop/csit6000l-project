@@ -21,8 +21,14 @@ void entry(const Arguments &args, function<void(double)> onProgress) {
     if (args.outputFile) {
         Image img(args.width, args.height);
         if (args.rayCasting) {
-            RayCaster rc(args);
-            Renderer::renderScene(scene, img, rc, args.jitter, onProgress);
+            if (args.blurry) {
+                BlurryRayCaster brc(args);
+                scene.setThinLensCamera(args.focus_dist);
+                Renderer::renderScene(scene, img, brc, args.jitter, onProgress);
+            } else {
+                RayCaster rc(args);
+                Renderer::renderScene(scene, img, rc, args.jitter, onProgress);
+            }
         } else {
             RayTracer rt(args);
             Renderer::renderScene(scene, img, rt, args.jitter, onProgress);
@@ -47,13 +53,4 @@ void entry(const Arguments &args, function<void(double)> onProgress) {
         Renderer::renderScene(scene, img, nrc, false, onProgress);
         img.saveImage(args.normalsFile);
     }
-
-    if (args.blurry) {
-        Image img(args.width, args.height);
-        BlurryRayCaster brc(args);
-        scene.setThinLensCamera(args.focus_dist);
-        Renderer::renderScene(scene, img, brc, args.jitter, onProgress);
-        img.saveImage(args.blurryFile);
-    }
-
 }
