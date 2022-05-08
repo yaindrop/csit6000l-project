@@ -24,6 +24,7 @@ Background {
 Materials {
     numMaterials 1
     Material { 
+    cubeMap tex/church2
 	specularColor 0.9 0.9 0.9
 	shininess 30
 	diffuseColor 0.2 0.2 0.3

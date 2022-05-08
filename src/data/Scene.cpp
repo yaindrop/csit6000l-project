@@ -222,6 +222,7 @@ Material *SceneParser::parseMaterial() {
     Vector3f diffuseColor(1, 1, 1), specularColor(0, 0, 0);
     float shininess = 0;
     float refractionIndex = 0;
+    CubeMap *cubemap = NULL;
     getToken(token);
     assert(!strcmp(token, "{"));
     Noise *noise = NULL;
@@ -235,6 +236,8 @@ Material *SceneParser::parseMaterial() {
             shininess = readFloat();
         } else if (strcmp(token, "refractionIndex") == 0) {
             refractionIndex = readFloat();
+        } else if (strcmp(token, "cubeMap") == 0){
+            cubemap = parseCubeMap();
         } else if (strcmp(token, "texture") == 0) {
             getToken(textureFileName);
         } else if (strcmp(token, "normal") == 0) {

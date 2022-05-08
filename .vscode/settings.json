@@ -110,7 +110,8 @@
         "cfenv": "cpp",
         "filesystem": "cpp",
         "__tree": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "__functional_base": "cpp"
     },
     "C_Cpp.loggingLevel": "Debug"
 }

@@ -18,7 +18,6 @@ const float kernel[5] = {0.1201, 0.2339, 0.2931, 0.2339, 0.1201};
 
 void entry(const Arguments &args, function<void(double)> onProgress) {
     Scene scene(args.inputFile);
-
     if (args.outputFile) {
         Image img(args.width, args.height);
         if (args.rayCasting) {
@@ -56,4 +55,5 @@ void entry(const Arguments &args, function<void(double)> onProgress) {
         Renderer::renderScene(scene, img, brc, args.jitter, onProgress);
         img.saveImage(args.blurryFile);
     }
+
 }

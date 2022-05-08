@@ -5,11 +5,16 @@ Vector3f RayCaster::render(const Scene &scene, const Ray &ray) {
     if (scene.getGroup().intersect(ray, hit, scene.getCamera().getTMin())) {
         auto color = scene.getAmbientLight() * hit.getMaterial()->getDiffuseColor();
         for (int li = 0; li < scene.getNumLights(); ++li) {
-            Vector3f lightDirection, lightColor, shadingColor;
+            Vector3f lightDirection, lightColor, shadingColor, envColor;
             float dist;
             scene.getLight(li).getIllumination(ray(hit.getT()), lightDirection, lightColor, dist);
-            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, args.pixelated, true);
-            color = color + shadingColor;
+            if (hit.getMaterial()->hasCubeMap()) {
+                envColor = hit.getMaterial()->getEnvironmentColor(ray, hit);
+                color = color + envColor;
+            } else {
+                shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, args.pixelated, true);
+                color = color + shadingColor;
+            }
         }
         return color;
     } else {
@@ -42,6 +47,27 @@ Vector3f NormalsRayCaster::render(const Scene &scene, const Ray &ray) {
         return n;
     } else {
         return Vector3f::ZERO;
+    }
+}
+
+Vector3f EnvironmentRayCaster::render(const Scene &scene, const Ray &ray) {
+    Hit hit(true);
+    auto n = hit.getNormal();
+    auto incidentRay = ray.getDirection();
+    auto reflectionDirection = incidentRay - 2.0 * n * Vector3f::dot(n, incidentRay);
+    Ray reflectionRay(ray(hit.getT()), reflectionDirection);
+    if (scene.getGroup().intersect(reflectionRay, hit, scene.getCamera().getTMin())) {
+        auto color = scene.getAmbientLight() * hit.getMaterial()->getDiffuseColor();
+        for (int li = 0; li < scene.getNumLights(); ++li) {
+            Vector3f lightDirection, lightColor, shadingColor;
+            float dist;
+            scene.getLight(li).getIllumination(ray(hit.getT()), lightDirection, lightColor, dist);
+            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, args.pixelated, true);
+            color = color + shadingColor;
+        }
+        return color;
+    } else {
+        return scene.getBackgroundColor(ray.getDirection());
     }
 }
 
