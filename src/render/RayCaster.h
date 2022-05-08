@@ -35,4 +35,10 @@ public:
     virtual Vector3f renderPixel(const Scene &scene, const Camera &camera, Vector2f position);
 };
 
+class EnvironmentRayCaster : public RayCaster {
+public:
+    EnvironmentRayCaster(const Arguments &args) : RayCaster(args) {}
+    virtual Vector3f render(const Scene &scene, const Ray &ray);
+};
+
 #endif // RAYCASTER_H

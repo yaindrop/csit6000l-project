@@ -220,6 +220,7 @@ Material *SceneParser::parseMaterial() {
     Vector3f diffuseColor(1, 1, 1), specularColor(0, 0, 0);
     float shininess = 0;
     float refractionIndex = 0;
+    CubeMap *cubemap = NULL;
     getToken(token);
     assert(!strcmp(token, "{"));
     Noise *noise = NULL;
@@ -233,6 +234,8 @@ Material *SceneParser::parseMaterial() {
             shininess = readFloat();
         } else if (strcmp(token, "refractionIndex") == 0) {
             refractionIndex = readFloat();
+        } else if (strcmp(token, "cubeMap") == 0){
+            cubemap = parseCubeMap();
         } else if (strcmp(token, "texture") == 0) {
             getToken(filename);
         }
@@ -246,7 +249,7 @@ Material *SceneParser::parseMaterial() {
             break;
         }
     }
-    Material *answer = new Material(diffuseColor, specularColor, shininess, refractionIndex);
+    Material *answer = new Material(diffuseColor, specularColor, shininess, refractionIndex, cubemap);
     if (filename[0] != 0) {
         answer->loadTexture(getRelativePath(filename).string().c_str());
     }
