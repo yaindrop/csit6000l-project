@@ -253,7 +253,7 @@ Material *SceneParser::parseMaterial() {
             break;
         }
     }
-    Material *answer = new Material(diffuseColor, specularColor, shininess, refractionIndex);
+    Material *answer = new Material(diffuseColor, specularColor, shininess, refractionIndex, cubemap);
     if (textureFileName[0] != 0) {
         answer->loadTexture(getRelativePath(textureFileName).string().c_str());
     }
