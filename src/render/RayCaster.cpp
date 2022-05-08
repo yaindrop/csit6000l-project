@@ -8,7 +8,7 @@ Vector3f RayCaster::render(const Scene &scene, const Ray &ray) {
             Vector3f lightDirection, lightColor, shadingColor;
             float dist;
             scene.getLight(li).getIllumination(ray(hit.getT()), lightDirection, lightColor, dist);
-            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, true);
+            shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, args.pixelated, true);
             color = color + shadingColor;
         }
         return color;

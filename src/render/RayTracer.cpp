@@ -99,7 +99,7 @@ Vector3f RayTracer::traceRay(const Ray &ray, float tmin, int bounces,
             scene->getLight(li).getIllumination(ray(hit.getT()), lightDirection, lightColor, lightDistance);
             if (args.shadows && inShadow(g, ray, hit, lightDirection, lightDistance))
                 continue;
-            auto shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor);
+            auto shadingColor = hit.getMaterial()->getShadingColor(ray, hit, lightDirection, lightColor, args.pixelated);
             color = color + shadingColor;
         }
         if (bounces < args.bounces) {

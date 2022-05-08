@@ -15,8 +15,8 @@ public:
     void load(const char *filename);
     void operator()(int x, int y, unsigned char *color) const;
     ///@param x assumed to be between 0 and 1
-    Vector3f operator()(float x, float y) const;
-    virtual Vector3f operator()(const Vector2f &point) const;
+    Vector3f operator()(float x, float y, bool pixelated = false) const;
+    virtual Vector3f operator()(const Vector2f &point, bool pixelated = false) const;
 
 private:
     bitmap_image *bimg;
@@ -25,7 +25,7 @@ private:
 
 class NormalMap : public Texture {
 public:
-    virtual Vector3f operator()(const Vector2f &point) const;
+    virtual Vector3f operator()(const Vector2f &point, bool pixelated = false) const;
 };
 
 #endif // TEXTURE_H

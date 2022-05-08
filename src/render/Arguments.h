@@ -39,6 +39,8 @@ struct Arguments {
     bool blurry = false;
     float focus_dist = 0;
     const char *blurryFile = NULL;
+
+    bool pixelated = false;
 };
 
 #endif // ARGUMENTS_H

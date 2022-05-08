@@ -24,7 +24,7 @@ public:
     }
     Vector3f getShadingColor(const Ray &ray, const Hit &hit,
                              const Vector3f &dirToLight, const Vector3f &lightColor,
-                             bool rayCasting = false) const;
+                             bool pixelated, bool rayCasting = false) const;
 
     void loadTexture(const char *filename) {
         t.load(filename);

@@ -2,18 +2,18 @@
 
 Vector3f Material::getShadingColor(const Ray &ray, const Hit &hit,
                                    const Vector3f &dirToLight, const Vector3f &lightColor,
-                                   bool rayCasting) const {
+                                   bool pixelated, bool rayCasting) const {
     bool useNormalMap = normalMap.valid() && hit.hasTex && hit.hasTbn;
     Vector3f n = hit.getNormal();
     if (useNormalMap) {
-        n = hit.tbn * normalMap(hit.texCoord);
+        n = hit.tbn * normalMap(hit.texCoord, pixelated);
     }
 
     bool useTextureColor = t.valid() && hit.hasTex;
     auto diffuseColor = noise.inited
                             ? noise.getColor(ray.getOrigin() + ray.getDirection() * hit.getT())
                         : useTextureColor
-                            ? t(hit.texCoord)
+                            ? t(hit.texCoord, pixelated)
                             : this->diffuseColor;
     float diffuseShading = max(0.0f, Vector3f::dot(dirToLight, n));
     auto diffuse = diffuseShading * lightColor * diffuseColor;

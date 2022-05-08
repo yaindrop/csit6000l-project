@@ -32,7 +32,7 @@ WEBJS = $(WEBDIR)/index.js
 WEBWASM = $(WEBDIR)/index.wasm
 WEBDATA = $(WEBDIR)/index.data
 EMCFLAGS = -O3 -Wall -Wextra -std=c++20
-EMFLAGS = --bind -sALLOW_MEMORY_GROWTH -sASYNCIFY -sENVIRONMENT=web -sMODULARIZE=1 -s'EXPORT_NAME="initModule"' -sASSERTIONS=1 -s'EXPORTED_RUNTIME_METHODS=["FS"]' --preload-file scene 
+EMFLAGS = --bind -sALLOW_MEMORY_GROWTH -sASYNCIFY -sENVIRONMENT=web -sMODULARIZE=1 -s'EXPORT_NAME="initModule"' -sASSERTIONS=1 -s'EXPORTED_RUNTIME_METHODS=["FS"]' --preload-file scene  
 
 web: $(WEBJS)
 
@@ -47,3 +47,6 @@ $(EMOBJDIR)/%.o: %.cpp
 
 clean:
 	rm -rf *.bak $(OBJDIR) core.* $(PROG) $(EMOBJDIR) $(WEBJS) $(WEBWASM) $(WEBDATA)
+
+cleanTarget:
+	rm -rf $(PROG) $(WEBJS) $(WEBWASM) $(WEBDATA)

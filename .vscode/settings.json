@@ -109,7 +109,8 @@
         "variant": "cpp",
         "cfenv": "cpp",
         "filesystem": "cpp",
-        "__tree": "cpp"
+        "__tree": "cpp",
+        "cassert": "cpp"
     },
     "C_Cpp.loggingLevel": "Debug"
 }

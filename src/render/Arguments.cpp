@@ -55,6 +55,8 @@ Arguments::Arguments(int argc, const char **argv) {
             blurry = true;
             focus_dist = atof(argv[++i]);
             blurryFile = argv[++i];
+        } else if (strcmp(argv[i], "-pixelated") == 0) {
+            pixelated = true;
         } else if (strcmp(argv[i], "-noargs") == 0) {
             exit(0);
         } else {

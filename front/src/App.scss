@@ -24,7 +24,7 @@
     flex            : 1;
     margin-left     : 10%;
     margin-right    : 10%;
-    background-color: #cccccc;
+    background-color: #eeeeee;
 }
 
 .output-image {
@@ -57,4 +57,79 @@
 
 .rendering-command {
     width: 100%;
+}
+
+.file-section {
+    margin-left  : 8%;
+    margin-right : 8%;
+    margin-bottom: 32px;
+}
+
+.file-panel {}
+
+.file-tree {
+    width      : 100%;
+    height     : 600px;
+    overflow   : auto;
+    white-space: nowrap;
+    border     : 1px solid #ccc;
+}
+
+.editor-panel {
+    flex-direction: column;
+    height        : 600px;
+}
+
+.editor-alert {
+    margin-left  : 8%;
+    margin-right : 8%;
+    margin-bottom: 8px;
+}
+
+.editor {
+    height: calc(100% - 24px);
+    border: 1px solid #ccc;
+}
+
+.editor-bar {
+    height          : 24px;
+    font-size       : .8em;
+    background-color: #007ACC;
+    color           : white;
+}
+
+.editor-bar-corner {
+    display         : inline-block;
+    width           : 72px;
+    height          : 100%;
+    background-color: #16825D;
+}
+
+.editor-bar-filename {
+    display     : inline-block;
+    padding-left: 4px;
+}
+
+.editor-bar-edit-sign {
+    display    : inline-block;
+    margin-left: auto;
+}
+
+.editor-alter {
+    display        : flex;
+    width          : 100%;
+    height         : 100%;
+    justify-content: center;
+    align-items    : center;
+}
+
+.editor-alter-image {
+    height         : 90%;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.ast-error {
+    text-decoration: red wavy underline;
 }
