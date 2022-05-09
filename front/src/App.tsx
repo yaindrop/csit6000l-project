@@ -1,7 +1,7 @@
 import { Button, Cascader, Col, Divider, Form, Input, InputNumber, Layout, notification, PageHeader, Popover, Progress, Row, Select, Slider, Spin, Switch, Tooltip } from 'antd';
 import { Content, Footer } from 'antd/lib/layout/layout';
 import Tree, { DataNode } from 'antd/lib/tree';
-import { FileOutlined, FileImageOutlined, FileJpgOutlined, FileMarkdownOutlined, FileTextOutlined, FileZipOutlined, LinkOutlined } from '@ant-design/icons';
+import { FileOutlined, FileImageOutlined, FileJpgOutlined, FileMarkdownOutlined, FileTextOutlined, FileZipOutlined, GithubOutlined, LinkOutlined } from '@ant-design/icons';
 import * as monaco from 'monaco-editor';
 import { parse as parsePath, resolve as resolvePath } from 'path';
 import { SingleValueType } from 'rc-cascader/lib/Cascader';
@@ -802,6 +802,9 @@ export const App = () => {
                 className="site-page-header"
                 title="Minecraft-like Game Scene Renderer"
                 subTitle="Group 3 of CSIT6000L Digital Design, 2022 Spring"
+                extra={[<a href='https://github.com/yaindrop/csit6000l-project'>
+                    <GithubOutlined style={{ color: 'black', fontSize: '36px' }} />
+                </a>]}
             />
             <Content className='content'>
                 <Divider orientation="left">Rendering</Divider>
