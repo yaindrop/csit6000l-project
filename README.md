@@ -22,7 +22,65 @@ Group 3 of CSIT6000L Digital Design, 2022 Spring
 -blurry [focus_length] [output_file]
 ```
 
-## Web UI
+# Web UI
+## Online Preview
+[via GitHub Page](yaindrop.github.io/6000lproj/)
+## Serve from local (via Python 3)
+```bash
+git clone https://github.com/yaindrop/6000lproj.git
+
+cd 6000lproj
+
+python -m http.server
+```
+## Features
+### In-Browser Rendering
+
+The Web UI is powered by WebAssembly and Emscripten, which can run the C++ renderer entirely inside the browser, without the need for any backend
+
+![image alt ><](img/webui_1.png)
+
+#### Progress Bar and Stop
+
+A progress bar is provided for better user experience. The rendering can also be manually stopped in case it's too slow with some arguments
+
+![image alt ><](img/webui_2.png)
+
+#### Feedback frequency
+
+Feedback frequency is how many times in a second to interrupt the rendering and report progress or receive stop instruction. It can be used as a trade-off between rendering time and UI responsiveness
+
+![image alt ><](img/webui_3.png)
+
+### Argument Settings Panel
+
+The arguments settings panel can control all the rendering arguments intuitively
+
+![image alt ><](img/webui_4.png)
+
+#### Input Scene File Traverser
+
+The input scene file is entered through a cascading selector
+
+![image alt ><](img/webui_5.png)
+
+#### Command generating
+
+The CLI command can also be generated with the settings panel
+
+![image alt ><](img/webui_6.png)
+
+### File System Sandbox
+
+### Scene Definition Editor
+
+#### Semantic Highlighting
+
+#### Semantic Parsing & Error Suggestion
+
+#### Auto-formatter
+
+
 ## Prerequisites
 1. Linux environment preferred (Arch Linux / Ubuntu) 
  - [Windows Subsystem of Linux](https://docs.microsoft.com/en-us/windows/wsl/install) is recommended
