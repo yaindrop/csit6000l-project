@@ -292,6 +292,15 @@ export const App = () => {
         }
     }, [selectedFile])
 
+    useEffect(() => {
+        if (isArgsValid(moduleArgs)) {
+            const flags = argsToFlags(moduleArgs)
+            setModuleCommand(['./proj', ...flags].join(' '))
+        } else {
+            setModuleCommand(undefined)
+        }
+    }, [moduleArgs])
+
     const stopRunning = useRef<number>(0)
     function onRenderClick() {
         if (!module)
@@ -305,10 +314,6 @@ export const App = () => {
             return
         }
         setModuleRunning(true)
-
-        const flags = argsToFlags(moduleArgs)
-        setModuleCommand(['./proj', ...flags].join(' '))
-        const argvec = parseModuleArgs(module, argsToFlags(moduleArgs))
         recursivelyMkdirForPath(module, moduleArgs.outputFile)
 
         stopRunning.current = 0
@@ -317,6 +322,7 @@ export const App = () => {
             return stopRunning.current
         }
 
+        const argvec = parseModuleArgs(module, argsToFlags(moduleArgs))
         const execHandle = module.exec(argvec, renderCallback, feedbackFps)
 
         if (typeof execHandle === "object") {
