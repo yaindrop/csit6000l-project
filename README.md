@@ -24,7 +24,7 @@ Group 3 of CSIT6000L Digital Design, 2022 Spring
 
 # Web UI
 ## Online Preview
-[via GitHub Page](yaindrop.github.io/6000lproj/)
+[via GitHub Page](https://yaindrop.github.io/6000lproj/)
 ## Serve from local (via Python 3)
 ```bash
 git clone https://github.com/yaindrop/6000lproj.git
@@ -86,7 +86,7 @@ To improve the editing experience, the scene definition DSL is parsed using the 
 
 ![image alt ><](img/webui_9.png)
 
-The parsed scene CST is then converted and binded to corresponding Abstract Syntax Tree (AST) ([defined here](https://github.com/yaindrop/csit6000l-project/blob/master/front/src/scene/ast.ts)), which is used to generate a series of functionality providers used by the Monaco Editor
+The parsed scene CST is then converted and binded to corresponding Abstract Syntax Tree (AST) ([defined here](front/src/scene/ast.ts)), which is used to generate a series of functionality providers used by the Monaco Editor
 
 #### Semantic Highlighting
 
