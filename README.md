@@ -104,13 +104,14 @@ Upon a failed AST parsing, the failed token is located and an error message is d
 ![image alt ><](img/webui_11.png)
 - Misplaced Block
 ![image alt ><](img/webui_12.png)
-
+- Missing Argument
+![image alt ><](img/webui_13.png)
 
 #### Auto-formatter
 
 The auto-fromatter is also built with the AST and can be invoked using ```Shift+Alt+F```
 
-![image alt ><](img/webui_13.png)
+![image alt ><](img/webui_14.png)
 
 ## Build Prerequisites
 1. Linux environment preferred (Arch Linux / Ubuntu) 
