@@ -195,6 +195,8 @@ export function parseMaterial(node: MultiLineEntryNode): Material {
                 res.texture = parseTextEntry(ie)
             } else if (name === 'normal') {
                 res.normal = parseTextEntry(ie)
+            } else if (name === 'cubeMap') {
+                res.cubeMap = parseTextEntry(ie)
             } else {
                 throw new SceneAstError(ie, `Unexpected argument "${name}"`)
             }

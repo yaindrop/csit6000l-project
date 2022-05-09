@@ -10,9 +10,9 @@
     padding-top     : 32px;
     min-height      : 360;
     background-color: white;
-    resize          : 'horizontal';
-    overflow        : 'hidden';
-    height          : 'auto';
+    resize          : horizontal;
+    overflow        : hidden;
+    height          : auto;
 }
 
 .output-panel {
@@ -55,8 +55,40 @@
     margin-left: 16px;
 }
 
-.rendering-command {
-    width: 100%;
+.args-pair-outer-item {
+    margin-bottom: 0;
+}
+
+.args-pair-item {
+    display: inline-block;
+    width  : calc(50% - 36px);
+}
+
+.args-pair-middle-tag {
+    display    : inline-block;
+    width      : 72px;
+    line-height: 32px;
+    text-align : center;
+}
+
+.feedback-freq {
+    display    : flex;
+    margin-left: 16px;
+    align-items: center;
+}
+
+.feedback-freq-slider {
+    transform   : translate(0, 4px);
+    display     : inline-block;
+    width       : 30%;
+    margin-left : 12px;
+    margin-right: 12px;
+}
+
+.rendering-command-text {
+    font-family: consolas, monospace;
+    margin-left: 16px;
+    cursor     : pointer;
 }
 
 .file-section {
@@ -87,6 +119,7 @@
 }
 
 .editor {
+    width : auto;
     height: calc(100% - 24px);
     border: 1px solid #ccc;
 }
@@ -105,6 +138,13 @@
     background-color: #16825D;
 }
 
+.editor-bar-corner-tag {
+    display        : flex;
+    height         : 100%;
+    justify-content: center;
+    align-items    : center;
+}
+
 .editor-bar-filename {
     display     : inline-block;
     padding-left: 4px;
@@ -113,6 +153,8 @@
 .editor-bar-edit-sign {
     display    : inline-block;
     margin-left: auto;
+    user-select: none;
+    cursor     : pointer;
 }
 
 .editor-alter {
@@ -124,7 +166,9 @@
 }
 
 .editor-alter-image {
-    height         : 90%;
+    height     : 90%;
+    max-width      : 90%;
+    object-fit     : contain;
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;

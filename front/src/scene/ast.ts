@@ -1,4 +1,4 @@
-import { CstElement, CstNode, IToken } from 'chevrotain';
+import { CstElement, CstNode, CstNodeLocation, IToken } from 'chevrotain';
 import { isDefinedNonEmpty, isDefinedWithLength, expect, hasKey } from 'src/utils';
 import { ArgumentNode, EntryListNode, EntryNode, InlineEntryNode, MultiLineEntryNode, RootNode } from './cst';
 
@@ -121,6 +121,7 @@ export interface Material extends AstNode<MultiLineEntryNode> {
     refractionIndex?: NumberEntry
     texture?: TextEntry
     normal?: TextEntry
+    cubeMap?: TextEntry
     noise?: Noise
 }
 export interface Noise extends AstNode<MultiLineEntryNode> {
@@ -191,7 +192,7 @@ export interface TextEntry extends AstNode<InlineEntryNode> {
 
 export function expectNumeric(arg: ArgumentNode): IToken {
     const { Numeric } = arg.children
-    expect(Numeric, isDefinedNonEmpty, SceneAstError, arg, 'Expects a number')
+    expect(Numeric, isDefinedNonEmpty, SceneAstError, arg, 'Expects a Numeric')
     const [res] = Numeric
     return res
 }
@@ -199,15 +200,27 @@ export function expectText(arg: ArgumentNode): IToken {
     const { Identifier, Text } = arg.children
     if (Identifier && Identifier.length === 1)
         return Identifier[0]
-    expect(Text, isDefinedWithLength(1), SceneAstError, arg, 'Expects a string')
+    expect(Text, isDefinedWithLength(1), SceneAstError, arg, 'Expects a Text')
     const [res] = Text
     return res
 }
 export function expectIdentifier(entry: InlineEntryNode | MultiLineEntryNode): IToken {
     const { Identifier } = entry.children
-    expect(Identifier, isDefinedNonEmpty, SceneAstError, entry, 'Expects an identifier')
+    expect(Identifier, isDefinedNonEmpty, SceneAstError, entry, 'Expects an Identifier')
     const [id] = Identifier
     return id
+}
+export function expectLCurly(entry: EntryListNode): IToken {
+    const { LCurly } = entry.children
+    expect(LCurly, isDefinedNonEmpty, SceneAstError, entry, 'Expects a LCurly')
+    const [t] = LCurly
+    return t
+}
+export function expectRCurly(entry: EntryListNode): IToken {
+    const { RCurly } = entry.children
+    expect(RCurly, isDefinedNonEmpty, SceneAstError, entry, 'Expects a RCurly')
+    const [t] = RCurly
+    return t
 }
 
 export function expectInlineEntry(e: EntryNode): InlineEntryNode {
@@ -238,18 +251,27 @@ export function expectEntries(list: EntryListNode) {
 export function isCstNode(e: CstElement): e is CstNode {
     return hasKey(e, 'children')
 }
+
+function sortByReversedPosition(e0: CstElement, e1: CstElement): number {
+    const l0: CstNodeLocation = isCstNode(e0) ? e0.location! : e0
+    const l1: CstNodeLocation = isCstNode(e1) ? e1.location! : e1
+    return l1.startOffset - l0.startOffset
+}
 export function visitCst(cst: CstNode, action: (e: CstElement) => void, matchNames?: Set<string>, skipNames?: Set<string>) {
     for (const stack: CstElement[] = [cst]; stack.length;) {
         const current = stack.pop()!
         action(current)
         if (!isCstNode(current))
             continue
+        const allChildren: CstElement[] = []
         for (const [cstNodeName, children] of Object.entries(current.children)) {
             if (skipNames?.has(cstNodeName))
                 continue
             if (matchNames && !matchNames.has(cstNodeName))
                 continue
-            stack.push(...children)
+            allChildren.push(...children)
         }
+        allChildren.sort(sortByReversedPosition)
+        stack.push(...allChildren)
     }
 }

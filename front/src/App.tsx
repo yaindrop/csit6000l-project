@@ -1,4 +1,4 @@
-import { Alert, Button, Cascader, Col, Divider, Form, Input, InputNumber, Layout, PageHeader, Progress, Row, Select, Spin, Switch } from 'antd';
+import { Button, Cascader, Col, Divider, Form, Input, InputNumber, Layout, notification, PageHeader, Popover, Progress, Row, Select, Slider, Spin, Switch, Tooltip } from 'antd';
 import { Content, Footer } from 'antd/lib/layout/layout';
 import Tree, { DataNode } from 'antd/lib/tree';
 import { FileOutlined, FileImageOutlined, FileJpgOutlined, FileMarkdownOutlined, FileTextOutlined, FileZipOutlined, LinkOutlined } from '@ant-design/icons';
@@ -7,7 +7,7 @@ import { parse as parsePath, resolve as resolvePath } from 'path';
 import { SingleValueType } from 'rc-cascader/lib/Cascader';
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 
-import { monarchTokensProvider, sceneDefinitionTheme, semanticTokensProvider } from './scene/monacoSupport';
+import { formattingEditProvider, monarchTokensProvider, sceneDefinitionTheme, semanticTokensProvider } from './scene/monacoSupport';
 import { sceneModelParsed } from './store';
 import { SceneParser } from './scene/cstParser';
 import { lexer, tokens } from './scene/cstLexer';
@@ -18,7 +18,7 @@ import './App.scss'
 import initModule, { WebModule } from 'web'
 import 'web/index.data'
 import 'web/index.wasm'
-import { argsToFlags, Arguments, defaultArguments, filterPathTree, isArgsValid, parseModuleArgs, PathTreeNode, rootDirectories, walkModuleFileSystem } from './binding';
+import { argsToFlags, Arguments, defaultArguments, filterPathTree, isArgsValid, parseModuleArgs, PathTreeNode, recursivelyMkdirForPath, rootDirectories, walkModuleFileSystem } from './binding';
 import { fullParse } from './scene';
 
 const { Option } = Select;
@@ -120,6 +120,7 @@ export const App = () => {
     const [isSizeLinked, setSizeLinked] = useState<boolean>(true)
     const [sizeLinkRatio, setSizeLinkRatio] = useState<number>(1)
     const [isCheckingArgs, setCheckingArgs] = useState<boolean>(false)
+    const [feedbackFps, setFeedbackFps] = useState<number>(20)
 
     const [isModuleRunning, setModuleRunning] = useState<boolean>(false)
     const [moduleStatus, setModuleStatus] = useState<number>(0)
@@ -137,6 +138,8 @@ export const App = () => {
     const [alterContent, setAlterContent] = useState<EditorAlterContent>()
     const [isEditorEdited, setEditorEdited] = useState<boolean>(false)
     const [isSaving, setIsSaving] = useState<boolean>(false)
+
+    const [shownEditorTips, setShownEditorTips] = useState<boolean>(false)
 
     function updateModuleArgs(args: Partial<Arguments>) {
         const newArgs = { ...moduleArgs, ...args }
@@ -195,9 +198,10 @@ export const App = () => {
         if (!editor)
             return
         editor.getModel()?.dispose()
-        monaco.languages.register({ id: 'SceneDefinition' });
-        monaco.languages.registerDocumentSemanticTokensProvider('SceneDefinition', semanticTokensProvider());
+        monaco.languages.register({ id: 'SceneDefinition' })
+        monaco.languages.registerDocumentSemanticTokensProvider('SceneDefinition', semanticTokensProvider())
         monaco.languages.setMonarchTokensProvider('SceneDefinition', monarchTokensProvider())
+        monaco.languages.registerDocumentFormattingEditProvider('SceneDefinition', formattingEditProvider())
         monaco.editor.defineTheme('SceneDefinitionTheme', sceneDefinitionTheme())
         monaco.editor.setTheme('SceneDefinitionTheme')
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => setIsSaving(true));
@@ -211,6 +215,7 @@ export const App = () => {
 
         const { cst, ast, astError } = fullParse(sceneCstLexer, sceneCstParser, text)
         if (cst && ast) {
+            console.debug('Parsed scene', cst, ast)
             sceneModelParsed.set(uri, [cst, ast])
         } else {
             sceneModelParsed.delete(uri)
@@ -229,6 +234,23 @@ export const App = () => {
             }
         }
     }, [])
+
+    function showEditorTips() {
+        if (!shownEditorTips) {
+            setShownEditorTips(true)
+            const key = `open${Date.now()}`;
+            notification.info({
+                message: 'Editor Tips',
+                description:
+                    'Please use Ctrl+S to save, Shift+Alt+F to reformat. Unsaved changes are disgarded upon file switch.',
+                btn: (
+                    <Button type="primary" size="small" onClick={() => notification.close(key)} children={'Got it'} />
+                ),
+                key,
+                duration: 0,
+            });
+        }
+    }
 
     useEffect(() => {
         setEditorEdited(false)
@@ -254,6 +276,7 @@ export const App = () => {
                         setEditorEdited(true)
                         parseSceneModel(editor, model)
                     })
+                    showEditorTips()
                 } else {
                     editor.updateOptions({ readOnly: true })
                     if (parsePath(selectedFile).ext === '.bmp') {
@@ -273,13 +296,15 @@ export const App = () => {
             setCheckingArgs(true)
             return
         }
+        setModuleRunning(true)
 
         const flags = argsToFlags(moduleArgs)
         setModuleCommand(['./proj', ...flags].join(' '))
         const argvec = parseModuleArgs(module, argsToFlags(moduleArgs))
+        recursivelyMkdirForPath(module, moduleArgs.outputFile)
 
-        const execHandle = module.exec(argvec, e => setModuleStatus(e.percentage))
-        setModuleRunning(true)
+        const execHandle = module.exec(argvec, e => setModuleStatus(e.percentage), feedbackFps)
+
         if (typeof execHandle === "object") {
             execHandle.then(() => {
                 setImgUrl(readImage(module, moduleArgs.outputFile))
@@ -458,34 +483,55 @@ export const App = () => {
     // Rendering
     function rendererSelect() {
         return (
-            <Form.Item label="Renderer" >
-                <Select
-                    style={{ width: 120 }}
-                    value={moduleArgs.rayCasting ? "caster" : "tracer"}
-                    onChange={v => updateModuleArgs({ rayCasting: v === "caster" })}>
-                    <Option value="caster">RayCaster</Option>
-                    <Option value="tracer">RayTracer</Option>
-                </Select>
+            <Form.Item label="Renderer" className='args-pair-outer-item'>
+                <Form.Item className='args-pair-item'>
+                    <Select
+                        style={{ width: 'auto' }}
+                        value={moduleArgs.rayCasting ? "caster" : "tracer"}
+                        onChange={v => updateModuleArgs({ rayCasting: v === "caster" })}>
+                        <Option value="caster">RayCaster</Option>
+                        <Option value="tracer">RayTracer</Option>
+                    </Select>
+                </Form.Item >
+                <Popover
+                    content={
+                        <div>
+                            <p>Whether to apply texture in pixelated way</p>
+                            <ul>
+                                <li>On: Crisp edge between texture pixels</li>
+                                <li>Off: Texture pixels blended with neighbors</li>
+                            </ul>
+                        </div>
+                    }
+                    title="Pixelated">
+                    <span className='args-pair-middle-tag'>
+                        Pixelated:
+                    </span>
+                </Popover>
+                <Form.Item className='args-pair-item'>
+                    <Switch
+                        checked={moduleArgs?.pixelated}
+                        onChange={pixelated => { updateModuleArgs({ pixelated }) }}
+                    />
+                </Form.Item >
             </Form.Item >
         )
     }
 
     function rayTracerOptions() {
         return (
-            <Form.Item label="Bounces" style={{ marginBottom: 0 }}>
-                <Form.Item
-                    style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
+            <Form.Item label="Bounces" className='args-pair-outer-item'>
+                <Form.Item className='args-pair-item'>
                     <InputNumber
                         style={{ width: 56 }}
                         value={moduleArgs?.bounces}
                         onChange={bounces => { updateModuleArgs({ bounces }) }}
                     />
                 </Form.Item >
-                <span
-                    style={{ display: 'inline-block', width: '72px', lineHeight: '32px', textAlign: 'center' }}>
+                <span className='args-pair-middle-tag'>
                     Shadows:
                 </span>
-                <Form.Item style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
+                <Form.Item className='args-pair-item'>
                     <Switch
                         checked={moduleArgs?.shadows}
                         onChange={shadows => { updateModuleArgs({ shadows }) }}
@@ -495,24 +541,36 @@ export const App = () => {
         )
     }
 
-    const [isBlurryEnabled, setBlurryEnabled] = useState(false)
     function rayCasterOptions() {
         return (
-            <Form.Item label="Blurring" style={{ marginBottom: 0 }}>
-                <Form.Item
-                    style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
+            <Form.Item label="Blurring" className='args-pair-outer-item'>
+                <Form.Item className='args-pair-item'>
                     <Switch
-                        checked={isBlurryEnabled}
-                        onChange={setBlurryEnabled}
+                        checked={moduleArgs.blurry !== undefined}
+                        onChange={v => {
+                            if (v) {
+                                updateModuleArgs({ blurry: 5 })
+                            } else {
+                                updateModuleArgs({ blurry: undefined })
+                            }
+                        }}
                     />
                 </Form.Item >
-                <span
-                    style={{ display: 'inline-block', width: '72px', lineHeight: '32px', textAlign: 'center' }}>
-                    Focus:
-                </span>
-                <Form.Item style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
+                <Popover
+                    content={
+                        <div>
+                            <p>The focus distance of the blurry camera</p>
+                        </div>
+                    }
+                    title="Focus">
+                    <span className='args-pair-middle-tag'>
+                        Focus:
+                    </span>
+                </Popover>
+                <Form.Item className='args-pair-item'>
                     <InputNumber
-                        disabled={!isBlurryEnabled}
+                        min={0}
+                        disabled={moduleArgs.blurry === undefined}
                         value={moduleArgs?.blurry}
                         onChange={blurry => { updateModuleArgs({ blurry }) }}
                     />
@@ -524,19 +582,17 @@ export const App = () => {
     // Sampling
     function samplingOptions() {
         return (
-            <Form.Item label="Jitter" style={{ marginBottom: 0 }}>
-                <Form.Item
-                    style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
+            <Form.Item label="Jitter" className='args-pair-outer-item'>
+                <Form.Item className='args-pair-item'>
                     <Switch
                         checked={moduleArgs?.jitter}
                         onChange={jitter => { updateModuleArgs({ jitter }) }}
                     />
                 </Form.Item >
-                <span
-                    style={{ display: 'inline-block', width: '72px', lineHeight: '32px', textAlign: 'center' }}>
+                <span className='args-pair-middle-tag'>
                     Filter:
                 </span>
-                <Form.Item style={{ display: 'inline-block', width: 'calc(50% - 36px)' }}>
+                <Form.Item className='args-pair-item'>
                     <Switch
                         checked={moduleArgs?.filter}
                         onChange={filter => { updateModuleArgs({ filter }) }}
@@ -546,34 +602,73 @@ export const App = () => {
         )
     }
 
-    function argsForm() {
+    function renderingArgsForm() {
         return (
-            <Spin tip="Loading Module" spinning={isModuleLoading}>
-                <Form labelCol={{ span: 4 }}
-                    wrapperCol={{ span: 20 }}>
-                    {inputFileSelect()}
-                    {outputFileInput()}
-                    {sizeInputs()}
+            <Form labelCol={{ span: 4 }}
+                wrapperCol={{ span: 20 }}>
+                {inputFileSelect()}
+                {outputFileInput()}
+                {sizeInputs()}
 
-                    {rendererSelect()}
-                    {moduleArgs.rayCasting ? rayCasterOptions() : rayTracerOptions()}
+                {rendererSelect()}
+                {moduleArgs.rayCasting ? rayCasterOptions() : rayTracerOptions()}
 
-                    {samplingOptions()}
-                </Form>
-            </Spin>
+                {samplingOptions()}
+            </Form>
         )
+    }
+
+    function renderingConfig() {
+        return (
+            <div className='rendering-config'>
+                <h4>Config </h4>
+                <div className='feedback-freq'>
+                    <Popover
+                        content={
+                            <div>
+                                <p>The frequency to interrupt the rendering and report progress</p>
+                                <ul>
+                                    <li>Low: Shorter rendering time; less responsive UI when rendering</li>
+                                    <li>High: Longer rendering time; more responsive UI when rendering</li>
+                                </ul>
+                            </div>
+                        }
+                        title="Feedback Frequency">
+                        <span>Feedback Frequency: </span>
+                    </Popover>
+                    <Slider
+                        className='feedback-freq-slider'
+                        value={feedbackFps}
+                        onChange={setFeedbackFps}
+                        min={1}
+                        max={60}
+                    />
+                    <span>{feedbackFps} / sec</span>
+
+                </div>
+            </div >
+        )
+    }
+
+    function selectContents(el: HTMLElement) {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection()!;
+        sel.removeAllRanges();
+        sel.addRange(range);
     }
 
     function renderingCommand() {
         return (
-            <div className='rendering-command'>
+            <div>
                 <h4>Command </h4>
-                <div style={{
-                    fontFamily: "consolas, monospace",
-                    marginLeft: '16px',
-                }}>
-                    {moduleCommand}
-                </div>
+                <Tooltip title='Click to select'>
+                    <div
+                        className='rendering-command-text'
+                        onClick={function (e) { selectContents(e.currentTarget) }}>
+                        {moduleCommand}
+                    </div>
+                </Tooltip>
             </div>
         )
     }
@@ -599,11 +694,14 @@ export const App = () => {
                     </div>
                 </Col>
                 <Col span={12}>
-                    <div className='args-panel'>
-                        <h4>Arguments</h4>
-                        {argsForm()}
-                        {moduleCommand ? renderingCommand() : undefined}
-                    </div>
+                    <Spin tip="Loading Module" spinning={isModuleLoading}>
+                        <div className='args-panel'>
+                            <h4>Arguments</h4>
+                            {renderingArgsForm()}
+                            {renderingConfig()}
+                            {moduleCommand ? renderingCommand() : undefined}
+                        </div>
+                    </Spin>
                 </Col>
             </Row>
         )
@@ -616,6 +714,16 @@ export const App = () => {
                     ? <img className='editor-alter-image' src={alterContent.url} />
                     : <span>{selectedFile ? 'File not supported' : 'No file selected'}</span>}
             </div>
+        )
+    }
+
+    function fileEditedSign() {
+        return (
+            <Tooltip title='Click or use Ctrl+S to save'>
+                <div className='editor-bar-edit-sign' onClick={() => setIsSaving(true)}>
+                    &nbsp;|&nbsp;Edited
+                </div>
+            </Tooltip >
         )
     }
 
@@ -636,21 +744,19 @@ export const App = () => {
                     </Col>
                     <Col span={1} className='editor-gap' />
                     <Col span={16} className='editor-panel'>
-                        <div ref={divRef} className='editor' style={{ width: 'auto' }} >
+                        <div ref={divRef} className='editor' >
                             {useEditorAlter ? editorAlter() : undefined}
                         </div>
                         <div className='editor-bar'>
                             <div className='editor-bar-corner'>
-                                <div style={{ display: 'flex', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                                <div className='editor-bar-corner-tag'>
                                     <span>Emscripten</span>
                                 </div>
                             </div>
                             <div className='editor-bar-filename'>
                                 {selectedFile}
                             </div>
-                            {isEditorEdited ? <div className='editor-bar-edit-sign'>
-                                &nbsp;|&nbsp;Edited
-                            </div> : undefined}
+                            {isEditorEdited ? fileEditedSign() : undefined}
                         </div>
                     </Col>
                 </Row>

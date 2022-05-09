@@ -1,9 +1,9 @@
 import * as monaco from 'monaco-editor';
-import { IToken } from "chevrotain";
-import { AstType, bindedTo, expectIdentifier, isBinded, isCstNode, visitCst } from "./ast";
-import { InlineEntryNode, MultiLineEntryNode } from "./cst";
+import { CstNode, IToken } from "chevrotain";
+import { AstType, bindedTo, expectEntryList, expectIdentifier, expectLCurly, expectRCurly, isBinded, isCstNode, visitCst } from "./ast";
+import { ArgumentNode, InlineEntryNode, MultiLineEntryNode } from "./cst";
 import { sceneModelParsed } from "src/store";
-import { hasKey } from "src/utils"
+import { cstLocationToMonacoRange, hasKey } from "src/utils"
 
 const colors = {
     "black": "#1b1f23",
@@ -105,6 +105,16 @@ export const semanticTokensLegend = {
     ]
 };
 
+function isArgument(e: CstNode): e is ArgumentNode {
+    return hasKey(e, 'name') && e.name === 'Argument'
+}
+function isInlineEntryNode(e: CstNode): e is InlineEntryNode {
+    return hasKey(e.children, 'Argument')
+}
+function isMultiLineEntryNode(e: CstNode): e is MultiLineEntryNode {
+    return hasKey(e.children, 'EntryList')
+}
+
 export function semanticTokensProvider(): monaco.languages.DocumentSemanticTokensProvider {
     return {
         getLegend: function () {
@@ -124,11 +134,12 @@ export function semanticTokensProvider(): monaco.languages.DocumentSemanticToken
                     return
                 let type = e.ast.type
                 let tokens: IToken[] = []
-                if (hasKey(e.children, 'Identifier')) {
-                    tokens.push(expectIdentifier(e as (InlineEntryNode | MultiLineEntryNode)))
+                if (isInlineEntryNode(e) || isMultiLineEntryNode(e)) {
+                    tokens.push(expectIdentifier(e))
                 }
+                // custom tokenization
                 if (bindedTo(e, AstType.PerspectiveCamera)) {
-
+                    
                 } else if (bindedTo(e, AstType.Lights)) {
 
                 } else if (bindedTo(e, AstType.DirectionalLight)) {
@@ -140,8 +151,7 @@ export function semanticTokensProvider(): monaco.languages.DocumentSemanticToken
                 } else if (bindedTo(e, AstType.Materials)) {
 
                 } else if (bindedTo(e, AstType.Material)) {
-                    const diffuseColor = expectIdentifier(e.ast.diffuseColor.cst)
-                    tokens.push(diffuseColor)
+                    
                 } else if (bindedTo(e, AstType.Group)) {
 
                 } else if (bindedTo(e, AstType.NumberEntry)) {
@@ -178,5 +188,94 @@ export function semanticTokensProvider(): monaco.languages.DocumentSemanticToken
             }
         },
         releaseDocumentSemanticTokens: function (resultId) { }
+    }
+}
+
+export function formattingEditProvider(): monaco.languages.DocumentFormattingEditProvider {
+    return {
+        provideDocumentFormattingEdits: function (model, options, token) {
+            const res: monaco.languages.TextEdit[] = []
+            let indentLevel = 0
+            function rangeValue(range: monaco.Range) {
+                return model.getValueInRange(range).replace(/(\r\n|\n|\r)/gm, "").trim()
+            }
+            function startHalfRange() {
+                if (res.length) {
+                    const prevEditRange = res[res.length - 1].range
+                    return {
+                        startLineNumber: prevEditRange.endLineNumber,
+                        startColumn: prevEditRange.endColumn,
+                    }
+                } else {
+                    return {
+                        startLineNumber: 1,
+                        startColumn: 1,
+                    }
+                }
+            }
+            function indent() {
+                return ' '.repeat(indentLevel * 4)
+            }
+
+            const uri = model.uri.toString()
+            if (!sceneModelParsed.has(uri))
+                return
+            const [cst] = sceneModelParsed.get(uri)!
+
+            visitCst(cst, e => {
+                console.log(e)
+
+                if (isCstNode(e)) {
+                    if (isInlineEntryNode(e) || isMultiLineEntryNode(e)) {
+                        const id = expectIdentifier(e)
+                        const range = cstLocationToMonacoRange(id)
+                        const idTextEdit: monaco.languages.TextEdit = {
+                            range: {
+                                ...range,
+                                ...startHalfRange(),
+                            },
+                            text: `\n${indent()}${id.image}`
+                        }
+                        res.push(idTextEdit)
+                    } else if (isArgument(e)) {
+                        const range = cstLocationToMonacoRange(e.location!)
+                        const idTextEdit: monaco.languages.TextEdit = {
+                            range: {
+                                ...range,
+                                ...startHalfRange(),
+                            },
+                            text: ` ${rangeValue(range)}`
+                        }
+                        res.push(idTextEdit)
+                    }
+                } else {
+                    if (e.tokenType.name === 'LCurly') {
+                        const range = cstLocationToMonacoRange(e)
+                        const idTextEdit: monaco.languages.TextEdit = {
+                            range: {
+                                ...range,
+                                ...startHalfRange(),
+                            },
+                            text: ` ${e.image}`
+                        }
+                        res.push(idTextEdit)
+                        ++indentLevel
+                    } else if (e.tokenType.name === 'RCurly') {
+                        --indentLevel
+                        const range = cstLocationToMonacoRange(e)
+                        const idTextEdit: monaco.languages.TextEdit = {
+                            range: {
+                                ...range,
+                                ...startHalfRange(),
+                            },
+                            text: `\n${indent()}${e.image}`
+                        }
+                        res.push(idTextEdit)
+                    }
+                }
+            })
+
+            return res
+        }
     }
 }

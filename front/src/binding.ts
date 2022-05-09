@@ -1,6 +1,7 @@
 import 'web/index.data'
 import 'web/index.wasm'
 import { WebModule } from 'web'
+import { parse, resolve } from 'path'
 
 export type Arguments = {
     inputFile: string
@@ -102,6 +103,19 @@ export function rootDirectories({ FS }: WebModule) {
     return (FS.readdir('/') as string[]).filter(p => p !== '.' && p !== '..')
 }
 
+export function recursivelyMkdirForPath(
+    { FS }: WebModule,
+    path: string,
+): void {
+    const parents = parse(path).dir.split('/').filter(p => p.length)
+    let current = '/'
+    for(const p of parents) {
+        if ((FS.readdir(current) as string[]).indexOf(p) < 0) {
+            FS.mkdir(current + p)
+        }
+        current += p + '/'
+    }
+}
 
 export function walkModuleFileSystem(
     { FS }: WebModule,
