@@ -36,7 +36,7 @@ python -m http.server
 ## Features
 ### In-Browser Rendering
 
-The Web UI is powered by WebAssembly and Emscripten, which can run the C++ renderer entirely inside the browser, without the need for any backend
+The Web UI is powered by [WebAssembly](https://webassembly.org/) and [Emscripten](https://emscripten.org/), which can run the C++ renderer entirely inside the browser, without the need for any backend
 
 ![image alt ><](img/webui_1.png)
 
@@ -48,7 +48,7 @@ A progress bar is provided for better user experience. The rendering can also be
 
 #### Feedback frequency
 
-Feedback frequency is how many times in a second to interrupt the rendering and report progress or receive stop instruction. It can be used as a trade-off between rendering time and UI responsiveness
+The feedback frequency indicates how many times in a second to interrupt the rendering and report progress or receive stop instruction. It can be used as a trade-off between rendering time and UI responsiveness
 
 ![image alt ><](img/webui_3.png)
 
@@ -58,7 +58,7 @@ The arguments settings panel can control all the rendering arguments intuitively
 
 ![image alt ><](img/webui_4.png)
 
-#### Input Scene File Traverser
+#### Input Scene File Selector
 
 The input scene file is entered through a cascading selector
 
@@ -72,16 +72,47 @@ The CLI command can also be generated with the settings panel
 
 ### File System Sandbox
 
+The Web UI also provides a file system sandbox based on the [Emscripten FS API](https://emscripten.org/docs/api_reference/Filesystem-API.html), allowing easy access to scene definition files and output files
+
+![image alt ><](img/webui_7.png)
+
 ### Scene Definition Editor
+
+The file system sandbox comes with a scene definition editor powered by the [Monaco Editor](https://microsoft.github.io/monaco-editor/)
+
+#### Parsing the Scene Definition DSL
+
+To improve the editing experience, the scene definition DSL is parsed using the [Chevrotain Parser Building Toolkit](https://chevrotain.io/). The Concrete Syntax Tree (CST) is visualized as the following rail diagram
+
+![image alt ><](img/webui_9.png)
+
+The parsed scene CST is then converted and binded to corresponding Abstract Syntax Tree (AST) ([defined here](https://github.com/yaindrop/csit6000l-project/blob/master/front/src/scene/ast.ts)), which is used to generate a series of functionality providers used by the Monaco Editor
 
 #### Semantic Highlighting
 
+The tokens in the scene definition files are colored according to their corresponding AST type
+
+![image alt ><](img/webui_8.png)
+
 #### Semantic Parsing & Error Suggestion
+
+Upon a failed AST parsing, the failed token is located and an error message is displayed
+
+- Unexpected Name
+![image alt ><](img/webui_10.png)
+- Unexpected Value
+![image alt ><](img/webui_11.png)
+- Misplaced Block
+![image alt ><](img/webui_12.png)
+
 
 #### Auto-formatter
 
+The auto-fromatter is also built with the AST and can be invoked using ```Shift+Alt+F```
 
-## Prerequisites
+![image alt ><](img/webui_13.png)
+
+## Build Prerequisites
 1. Linux environment preferred (Arch Linux / Ubuntu) 
  - [Windows Subsystem of Linux](https://docs.microsoft.com/en-us/windows/wsl/install) is recommended
      - [Ubuntu WSL](https://ubuntu.com/wsl)
@@ -121,8 +152,8 @@ git pull
 ./emsdk activate latest
 ```
 
-## Usage
-1. In the project directory, build the web project using Emscripten SDK
+## Build
+1. In the project directory, build the web module using Emscripten SDK
 
 ```bash
 # Activate PATH and other environment variables in the current terminal
