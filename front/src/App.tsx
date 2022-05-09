@@ -15,7 +15,7 @@ import { clamp, cstLocationToMonacoRange, useEditor } from './utils';
 
 import './App.scss'
 
-import initModule, { WebModule } from 'web'
+import initModule, { ModuleProgressEvent, WebModule } from 'web'
 import 'web/index.data'
 import 'web/index.wasm'
 import { argsToFlags, Arguments, defaultArguments, filterPathTree, isArgsValid, parseModuleArgs, PathTreeNode, recursivelyMkdirForPath, rootDirectories, walkModuleFileSystem } from './binding';
@@ -123,8 +123,9 @@ export const App = () => {
     const [feedbackFps, setFeedbackFps] = useState<number>(20)
 
     const [isModuleRunning, setModuleRunning] = useState<boolean>(false)
-    const [moduleStatus, setModuleStatus] = useState<number>(0)
+    const [moduleStatus, setModuleStatus] = useState<ModuleProgressEvent>()
     const [moduleCommand, setModuleCommand] = useState<string>()
+    const [moduleJustComplete, setModuleJustComplete] = useState<boolean>(false)
 
     const [fileTree, setFileTree] = useState<DataNode[]>([])
     const [expandedDirs, setExpandedDirs] = useState(new Set<string>(['scene', 'output']))
@@ -182,8 +183,10 @@ export const App = () => {
     }, [module])
 
     useEffect(() => {
+        if (!isSaving)
+            return
         setIsSaving(false)
-        console.log(module, editor, selectedFile)
+        console.debug('Saving file', module, editor, selectedFile)
         if (!module || !editor || !selectedFile)
             return
         const model = editor.getModel()
@@ -289,11 +292,16 @@ export const App = () => {
         }
     }, [selectedFile])
 
+    const stopRunning = useRef<number>(0)
     function onRenderClick() {
         if (!module)
             return
         if (!isArgsValid(moduleArgs)) {
             setCheckingArgs(true)
+            return
+        }
+        if (isModuleRunning) {
+            stopRunning.current = 1
             return
         }
         setModuleRunning(true)
@@ -303,35 +311,53 @@ export const App = () => {
         const argvec = parseModuleArgs(module, argsToFlags(moduleArgs))
         recursivelyMkdirForPath(module, moduleArgs.outputFile)
 
-        const execHandle = module.exec(argvec, e => setModuleStatus(e.percentage), feedbackFps)
+        stopRunning.current = 0
+        function renderCallback(e: ModuleProgressEvent) {
+            setModuleStatus(e)
+            return stopRunning.current
+        }
+
+        const execHandle = module.exec(argvec, renderCallback, feedbackFps)
 
         if (typeof execHandle === "object") {
-            execHandle.then(() => {
-                setImgUrl(readImage(module, moduleArgs.outputFile))
-                setModuleRunning(false)
-                updateFileTree(module)
-            })
+            execHandle
+                .then(() => {
+                    setImgUrl(readImage(module, moduleArgs.outputFile))
+                    updateFileTree(module)
+                    setModuleJustComplete(true)
+                })
+                .catch(e => console.debug('Module exited', e))
+                .finally(() => {
+                    setModuleRunning(false)
+                })
         } else {
             setImgUrl(readImage(module, moduleArgs.outputFile))
-            setModuleRunning(false)
             updateFileTree(module)
+            setModuleJustComplete(true)
+            setModuleRunning(false)
         }
     }
 
+    useEffect(() => {
+        if (moduleJustComplete) {
+            setTimeout(() => setModuleJustComplete(false), 3000)
+        }
+    }, [moduleJustComplete])
+
     function renderButton() {
-        const buttonText = isModuleLoading ? "Loading" : isModuleRunning ? "Running" : "Render"
+        const buttonText = isModuleLoading ? "Loading" : isModuleRunning ? "Stop" : moduleJustComplete ? "Success" : "Render"
         return (
             <div className='output-render-button'>
                 <Button
                     children={buttonText}
                     type='primary'
                     onClick={onRenderClick}
-                    loading={isModuleLoading || isModuleRunning}
+                    disabled={isModuleLoading}
                 />
                 {isModuleRunning ?
                     <Progress
                         style={{ width: "100%" }}
-                        percent={Math.round(moduleStatus * 100)}
+                        percent={Math.round(moduleStatus ? moduleStatus.percentage * 100 : 0)}
                     /> : undefined}
             </div>
         )

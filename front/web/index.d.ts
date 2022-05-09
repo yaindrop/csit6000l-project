@@ -15,7 +15,7 @@ declare module 'web' {
         StringVector: new () => WebModule.StringVector
         exec(
             argvec: WebModule.StringVector,
-            callback: (event: ModuleProgressEvent) => void,
+            callback: (event: ModuleProgressEvent) => number, // return 0 for continue, 1 for exit
             callbackFreq: number
         ): Promise<void> | string
     }

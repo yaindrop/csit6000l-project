@@ -49,9 +49,9 @@ module.exports = {
         rules: [
             {
                 test: /\.(wasm|data)$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[ext]',
+                type: 'asset/resource',
+                generator: {
+                    filename: '[name][ext]',
                 }
             },
             {
@@ -85,7 +85,7 @@ module.exports = {
             },
             {
                 test: /\.ttf$/,
-                use: ['file-loader']
+                type: 'asset/resource'
             }
         ]
     },

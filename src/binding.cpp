@@ -33,7 +33,10 @@ std::string exec(std::vector<std::string> argvec, val callback, double callbackF
         auto t1 = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
         if ((t1 - t0).count() * callbackFreq > 1000) {
             t0 = t1;
-            callback(progressEvent(p));
+            int stop = callback(progressEvent(p)).as<int>();
+            if (stop) {
+                exit(0);
+            }
             emscripten_sleep(0);
         }
     };
