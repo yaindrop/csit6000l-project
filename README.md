@@ -7,6 +7,12 @@ Group 3 of CSIT6000L Digital Design, 2022 Spring
 ```
 
 ## Blurring Feature
+Thin-lens Camera used to simulate the lens in physical camera, which the focus length can be manually control to focus on a range of focus distance. The related formula is: 
+
+1/f = 1/s + 1/i, where f, s, i are focus length, distance between image panel and lens, distance between lens and focal panel respectively.
+
+In our implementation, i remain constant, so f is depend only on the given s (focus length).
+
 ### Examples
 ![image alt >](https://user-images.githubusercontent.com/55251580/164992036-97c0e033-b153-4ce2-b7e7-e05fb003b629.png)
 *Normal output*
@@ -19,7 +25,7 @@ Group 3 of CSIT6000L Digital Design, 2022 Spring
 
 ### Flag
 ```
--blurry [focus_length] [output_file]
+-blurry [focus_length]
 ```
 
 # Web UI
