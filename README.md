@@ -11,9 +11,16 @@ Thin-lens Camera used to simulate the lens in physical camera, which the focus l
 
 1/f = 1/s + 1/i, where f, s, i are focus length, distance between image panel and lens, distance between lens and focal panel respectively.
 
-In our implementation, i remain constant, so f is depend only on the given s (focus length).
+In our implementation, s remain constant, so f is depend only on the given i (focus length).
 
-### Examples
+### Illustration
+Distant object burring            |  Close object burring
+:-------------------------:|:-------------------------:
+<img src="https://user-images.githubusercontent.com/55251580/167523236-e9b625c8-719e-4826-9789-74f0bdf158aa.png" height="200">| <img src="https://user-images.githubusercontent.com/55251580/167523587-28511d6b-1e97-4fe3-8b98-9b4670d7045f.png" height="200">
+![Distant object burring 2](https://user-images.githubusercontent.com/55251580/167523686-3b3b1c6b-cb99-4bdc-948f-c451924dabe0.png) | ![Close object burring 2](https://user-images.githubusercontent.com/55251580/167523714-241b3129-f2e7-4a2a-bbc5-401b4904d95b.png)
+
+
+### Rendering Result 
 ![image alt >](https://user-images.githubusercontent.com/55251580/164992036-97c0e033-b153-4ce2-b7e7-e05fb003b629.png)
 *Normal output*
 
