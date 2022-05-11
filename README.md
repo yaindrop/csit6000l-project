@@ -1,6 +1,8 @@
 # Minecraft-like Game Scene Renderer
 Group 3 of CSIT6000L Digital Design, 2022 Spring
 
+[Presentation Slides](https://docs.google.com/presentation/d/1JzKL21sMVE8I_CnZdAXgefdtIW8w9zJWtz0asdziYHw/edit?usp=sharing)
+
 ## Test
 ```
 ./test_all.sh
