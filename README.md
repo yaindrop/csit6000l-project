@@ -1,7 +1,11 @@
 # Minecraft-like Game Scene Renderer
 Group 3 of CSIT6000L Digital Design, 2022 Spring
 
+[Web UI Entry](https://yaindrop.github.io/6000lproj/)
+
 [Presentation Slides](https://docs.google.com/presentation/d/1JzKL21sMVE8I_CnZdAXgefdtIW8w9zJWtz0asdziYHw/edit?usp=sharing)
+
+[Presentation Script](https://docs.google.com/document/d/18tunCv-qkQNkny6MDqYlQNZ-UFVxFq4UU2vcTtBqCSc/edit#)
 
 ## Test
 ```
